@@ -6,12 +6,25 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { SendHorizontal } from "lucide-react";
-import { chatWithOllama } from "@/lib/ollama";
+import { chatWithOllama, getModels } from "@/lib/ollama";
 import { useToast } from "./ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+}
+
+interface Model {
+  name: string;
+  modified_at: string;
+  size: number;
 }
 
 export function Chat() {
@@ -20,8 +33,29 @@ export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [models, setModels] = useState<Model[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>("llama2");
 
-  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        const modelList = await getModels();
+        setModels(modelList);
+        if (modelList.length > 0) {
+          setSelectedModel(modelList[0].name);
+        }
+      } catch (error) {
+        console.error("Error loading models:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load available models. Please make sure Ollama is running.",
+        });
+      }
+    };
+    loadModels();
+  }, [toast]);
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
@@ -32,16 +66,14 @@ export function Chat() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    // Add user message
     const userMessage: Message = { role: "user", content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
     try {
-      const response = await chatWithOllama([...messages, userMessage]);
+      const response = await chatWithOllama([...messages, userMessage], selectedModel);
       
-      // Add assistant message
       const assistantMessage: Message = response.message;
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -58,6 +90,21 @@ export function Chat() {
 
   return (
     <div className="flex flex-col h-[80vh] max-w-4xl mx-auto">
+      <div className="flex justify-end p-4">
+        <Select value={selectedModel} onValueChange={setSelectedModel}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Select a model" />
+          </SelectTrigger>
+          <SelectContent>
+            {models.map((model) => (
+              <SelectItem key={model.name} value={model.name}>
+                {model.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-4">
           {messages.length === 0 && (
