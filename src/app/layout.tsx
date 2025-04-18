@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/navbar";
 import Nprogress from "@/components/nprogress";
 import { Footer } from "@/components/footer";
@@ -32,6 +33,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1 p-3 mt-[80px]">{children}</main>
           <Footer />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
