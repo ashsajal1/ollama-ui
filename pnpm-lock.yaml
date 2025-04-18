@@ -148,7 +148,7 @@ importers:
         version: 2.4.7
       next-shadcn-tsx:
         specifier: 'file:'
-        version: file:(@babel/core@7.26.10)(@react-three/fiber@9.1.0(@types/react@18.3.19)(react-dom@18.3.1(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react@18.3.1)(three@0.174.0))(@types/pg@8.11.6)(@types/react-dom@18.3.5(@types/react@18.3.19))(@types/react@18.3.19)(konva@9.3.19)(prisma@5.22.0)(react-konva@18.2.10(@types/react@18.3.19)(konva@9.3.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react-zdog@1.2.2)(tailwindcss@3.4.17)(three@0.174.0)(zdog@1.1.3)
+        version: next-saas-template@file:(@babel/core@7.26.10)(@react-three/fiber@9.1.0(@types/react@18.3.19)(react-dom@18.3.1(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react@18.3.1)(three@0.174.0))(@types/pg@8.11.6)(@types/react-dom@18.3.5(@types/react@18.3.19))(@types/react@18.3.19)(konva@9.3.19)(prisma@5.22.0)(react-konva@18.2.10(@types/react@18.3.19)(konva@9.3.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react-zdog@1.2.2)(tailwindcss@3.4.17)(three@0.174.0)(zdog@1.1.3)
       next-themes:
         specifier: ^0.3.0
         version: 0.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4270,7 +4270,7 @@ packages:
   next-nprogress-bar@2.4.7:
     resolution: {integrity: sha512-OeveNQYFBhQhZ+RgrDnvHNUEQfHCmipymmD4AfAVE9pFV4jeWi7/nNK5f0lIk7ODRrtjyyr/n2YpkRbs5kUoMg==}
 
-  'next-shadcn-tsx@file:':
+  'next-saas-template@file:':
     resolution: {directory: '', type: directory}
 
   next-themes@0.3.0:
@@ -9966,7 +9966,7 @@ snapshots:
     dependencies:
       nprogress-v2: 1.1.10
 
-  next-shadcn-tsx@file:(@babel/core@7.26.10)(@react-three/fiber@9.1.0(@types/react@18.3.19)(react-dom@18.3.1(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react@18.3.1)(three@0.174.0))(@types/pg@8.11.6)(@types/react-dom@18.3.5(@types/react@18.3.19))(@types/react@18.3.19)(konva@9.3.19)(prisma@5.22.0)(react-konva@18.2.10(@types/react@18.3.19)(konva@9.3.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react-zdog@1.2.2)(tailwindcss@3.4.17)(three@0.174.0)(zdog@1.1.3):
+  next-saas-template@file:(@babel/core@7.26.10)(@react-three/fiber@9.1.0(@types/react@18.3.19)(react-dom@18.3.1(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react@18.3.1)(three@0.174.0))(@types/pg@8.11.6)(@types/react-dom@18.3.5(@types/react@18.3.19))(@types/react@18.3.19)(konva@9.3.19)(prisma@5.22.0)(react-konva@18.2.10(@types/react@18.3.19)(konva@9.3.19)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.78.1(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.19)(react@18.3.1))(react-zdog@1.2.2)(tailwindcss@3.4.17)(three@0.174.0)(zdog@1.1.3):
     dependencies:
       '@clerk/nextjs': 5.7.5(next@14.2.4(@babel/core@7.26.10)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@hookform/resolvers': 3.10.0(react-hook-form@7.54.2(react@18.3.1))
@@ -10011,6 +10011,7 @@ snapshots:
       framer-motion: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       input-otp: 1.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       lucide-react: 0.424.0(react@18.3.1)
+      motion: 12.7.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next: 14.2.4(@babel/core@7.26.10)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-nprogress-bar: 2.4.7
       next-themes: 0.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
