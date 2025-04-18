@@ -17,14 +17,24 @@ import {
 } from "@/components/ui/select";
 
 interface Message {
+  id?: string;
   role: "user" | "assistant";
   content: string;
+  createdAt?: Date;
 }
 
 interface Model {
   name: string;
   modified_at: string;
   size: number;
+}
+
+interface Chat {
+  id: string;
+  name: string;
+  messages: Message[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export function Chat() {
@@ -35,6 +45,7 @@ export function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("llama2");
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -62,6 +73,52 @@ export function Chat() {
     }
   }, [messages]);
 
+  const createNewChat = async (message: string) => {
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: message.slice(0, 30) + "...",
+          message,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create chat");
+      
+      const chat = await response.json();
+      setCurrentChatId(chat.id);
+      return chat.id;
+    } catch (error) {
+      console.error("Error creating chat:", error);
+      throw error;
+    }
+  };
+
+  const saveMessages = async (chatId: string, newMessages: Message[]) => {
+    try {
+      const response = await fetch(`/api/chat/${chatId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: newMessages,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save messages");
+      
+      const chat = await response.json();
+      return chat;
+    } catch (error) {
+      console.error("Error saving messages:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -72,10 +129,21 @@ export function Chat() {
     setIsLoading(true);
 
     try {
+      // Create a new chat if this is the first message
+      if (!currentChatId) {
+        const chatId = await createNewChat(userMessage.content);
+        setCurrentChatId(chatId);
+      }
+
       const response = await chatWithOllama([...messages, userMessage], selectedModel);
-      
       const assistantMessage: Message = response.message;
+      
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Save both messages to the database
+      if (currentChatId) {
+        await saveMessages(currentChatId, [userMessage, assistantMessage]);
+      }
     } catch (error) {
       console.error("Error:", error);
       toast({
