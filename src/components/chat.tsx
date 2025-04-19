@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { SendHorizontal } from "lucide-react";
-import { chatWithOllama, getModels } from "@/lib/ollama";
+import { chatWithOllama, getModels, streamChat } from "@/lib/ollama";
 import { useToast } from "./ui/use-toast";
 import {
   Select,
@@ -135,14 +135,24 @@ export function Chat() {
         setCurrentChatId(chatId);
       }
 
-      const response = await chatWithOllama([...messages, userMessage], selectedModel);
-      const assistantMessage: Message = response.message;
-      
+      // Initialize an empty assistant message
+      const assistantMessage: Message = { role: "assistant", content: "" };
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Save both messages to the database
+      // Stream the response
+      for await (const chunk of streamChat([...messages, userMessage], selectedModel)) {
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          lastMessage.content += chunk.message.content;
+          return newMessages;
+        });
+      }
+
+      // Save messages to the database after streaming is complete
       if (currentChatId) {
-        await saveMessages(currentChatId, [userMessage, assistantMessage]);
+        const lastMessage = messages[messages.length - 1];
+        await saveMessages(currentChatId, [userMessage, lastMessage]);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -151,6 +161,8 @@ export function Chat() {
         title: "Error",
         description: "Failed to get response from Ollama. Please try again.",
       });
+      // Remove the empty assistant message if there was an error
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
