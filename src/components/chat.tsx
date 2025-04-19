@@ -227,7 +227,7 @@ export function Chat({ initialChatId }: ChatProps) {
     };
   }, [toast, initialChatId]);
 
-  const createNewChat = async (message: string) => {
+  const createNewChat = async (name: string) => {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -235,8 +235,7 @@ export function Chat({ initialChatId }: ChatProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: message.slice(0, 30) + "...",
-          message,
+          name: name.slice(0, 30) + "...",
         }),
       });
 

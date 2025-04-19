@@ -9,15 +9,6 @@ export async function POST(req: Request) {
     const chat = await prisma.chat.create({
       data: {
         name,
-        messages: {
-          create: {
-            content: message,
-            role: "user",
-          },
-        },
-      },
-      include: {
-        messages: true,
       },
     });
 
