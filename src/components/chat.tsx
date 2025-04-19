@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Pencil,
   Trash2,
+  Grid2X2,
 } from "lucide-react";
 import { chatWithOllama, getModels, streamChat } from "@/lib/ollama";
 import { useToast } from "./ui/use-toast";
@@ -66,6 +67,33 @@ interface Chat {
   createdAt: Date;
   updatedAt: Date;
 }
+
+const preGeneratedPrompts = [
+  {
+    title: "Code Explanation",
+    prompt: "Can you explain this code and how it works?",
+  },
+  {
+    title: "Bug Finding",
+    prompt: "Can you help me find bugs in this code?",
+  },
+  {
+    title: "Code Review",
+    prompt: "Please review this code and suggest improvements.",
+  },
+  {
+    title: "Documentation",
+    prompt: "Help me write documentation for this code.",
+  },
+  {
+    title: "Optimization",
+    prompt: "How can I optimize this code for better performance?",
+  },
+  {
+    title: "Testing",
+    prompt: "Help me write tests for this code.",
+  },
+];
 
 export function Chat() {
   const { toast } = useToast();
@@ -323,7 +351,7 @@ export function Chat() {
   };
 
   return (
-    <div className="flex h-screen max-w-full mx-auto">
+    <div className="flex h-[calc(100vh-90px)] max-w-full mx-auto">
       {/* Fixed Header when sidebar is collapsed */}
       {!isSidebarOpen && (
         <div className="fixed top-0 left-0 p-4 z-20 flex items-center gap-2">
@@ -433,23 +461,41 @@ export function Chat() {
       <div className="flex-1 flex flex-col min-h-0 relative bg-background">
         <ScrollArea className="flex-1 px-4 pb-20" ref={scrollAreaRef}>
           <div className="space-y-4">
-            {messages.length === 0 && (
-              <div className="text-center text-muted-foreground mt-8">
-                Start a conversation with Ollama
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center mt-8 space-y-6">
+                <h2 className="text-2xl font-semibold text-center">Choose a prompt or start typing</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mx-auto p-4">
+                  {preGeneratedPrompts.map((item, index) => (
+                    <Card
+                      key={index}
+                      className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                      onClick={() => {
+                        setInput(item.prompt);
+                        // Focus the textarea
+                        const textarea = document.querySelector('textarea');
+                        if (textarea) textarea.focus();
+                      }}
+                    >
+                      <h3 className="font-medium mb-2">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground">{item.prompt}</p>
+                    </Card>
+                  ))}
+                </div>
               </div>
+            ) : (
+              messages.map((message, i) => (
+                <Card
+                  key={i}
+                  className={`p-4 ${
+                    message.role === "user"
+                      ? "ml-auto bg-primary text-primary-foreground"
+                      : "mr-auto bg-muted"
+                  } max-w-[80%]`}
+                >
+                  {message.content}
+                </Card>
+              ))
             )}
-            {messages.map((message, i) => (
-              <Card
-                key={i}
-                className={`p-4 ${
-                  message.role === "user"
-                    ? "ml-auto bg-primary text-primary-foreground"
-                    : "mr-auto bg-muted"
-                } max-w-[80%]`}
-              >
-                {message.content}
-              </Card>
-            ))}
           </div>
         </ScrollArea>
 
