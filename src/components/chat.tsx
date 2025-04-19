@@ -46,6 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
 interface Message {
   id?: string;
@@ -311,7 +312,10 @@ export function Chat({ initialChatId }: ChatProps) {
 
       // Save messages to the database after streaming is complete
       if (currentChatId && currentMessageRef.current) {
-        await saveMessages(currentChatId, [userMessage, currentMessageRef.current]);
+        await saveMessages(currentChatId, [
+          userMessage,
+          currentMessageRef.current,
+        ]);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -473,42 +477,44 @@ export function Chat({ initialChatId }: ChatProps) {
               <ScrollArea className="flex-1 px-4">
                 <div className="space-y-2 pr-2">
                   {chats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className="group flex items-center gap-2"
-                    >
-                      <Button
-                        variant={
-                          currentChatId === chat.id ? "secondary" : "ghost"
-                        }
-                        className="flex-1 justify-start truncate h-9 px-3"
-                        onClick={() => loadChat(chat.id)}
+                    <Link key={chat.id} href={`/${chat.id}`}>
+                      <div
+                        key={chat.id}
+                        className="group flex items-center gap-2"
                       >
-                        {chat.name.slice(0, 20) +
-                          (chat.name.length > 20 ? "..." : "")}
-                      </Button>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => {
-                            setEditingChat(chat);
-                            setEditingName(chat.name);
-                          }}
+                          variant={
+                            currentChatId === chat.id ? "secondary" : "ghost"
+                          }
+                          className="flex-1 justify-start truncate h-9 px-3"
+                          onClick={() => loadChat(chat.id)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          {chat.name.slice(0, 20) +
+                            (chat.name.length > 20 ? "..." : "")}
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive"
-                          onClick={() => setDeletingChat(chat)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => {
+                              setEditingChat(chat);
+                              setEditingName(chat.name);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive"
+                            onClick={() => setDeletingChat(chat)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </ScrollArea>
