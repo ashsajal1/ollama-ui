@@ -495,12 +495,12 @@ export function Chat({ initialChatId }: ChatProps) {
                       key={chat.id}
                       className="group flex justify-between cursor-pointer items-center gap-2"
                     >
-                      <Link href={`/${chat.id}`}>
+                      <Link className="w-full" href={`/${chat.id}`}>
                         <Button
                           variant={
                             currentChatId === chat.id ? "secondary" : "ghost"
                           }
-                          className="flex-1 justify-start truncate h-9 px-3"
+                          className="flex-1 justify-start truncate h-9 px-3 w-full"
                           onClick={() => loadChat(chat.id)}
                         >
                           {chat.name.slice(0, 20) +
