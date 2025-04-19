@@ -29,8 +29,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Nprogress />
-          <Navbar />
-          <main className="flex-1 mt-[80px]">{children}</main>
+          <main className="flex-1">{children}</main>
           <Toaster />
         </ThemeProvider>
       </body>
