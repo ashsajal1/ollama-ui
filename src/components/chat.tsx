@@ -329,12 +329,13 @@ export function Chat() {
       </Button>
 
       {/* Chat list sidebar */}
-      <div className={`${isSidebarOpen ? 'w-72' : 'w-0'} transition-all duration-300 border-r flex flex-col bg-background overflow-hidden`}>
+      <div
+        className={`${
+          isSidebarOpen ? "w-72" : "w-0"
+        } transition-all duration-300 border-r flex flex-col bg-background overflow-hidden`}
+      >
         <div className="p-4 h-full flex flex-col">
-          <Button 
-            onClick={handleNewChat}
-            className="mb-4 w-full"
-          >
+          <Button onClick={handleNewChat} className="mb-4 w-full">
             New Chat
           </Button>
           <ScrollArea className="flex-1">
@@ -346,7 +347,8 @@ export function Chat() {
                     className="flex-1 justify-start truncate h-9 px-3"
                     onClick={() => loadChat(chat.id)}
                   >
-                    {chat.name}
+                    {chat.name.slice(0, 20) +
+                      (chat.name.length > 20 ? "..." : "")}
                   </Button>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
@@ -437,7 +439,10 @@ export function Chat() {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={editingChat !== null} onOpenChange={() => setEditingChat(null)}>
+      <Dialog
+        open={editingChat !== null}
+        onOpenChange={() => setEditingChat(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Chat Name</DialogTitle>
@@ -461,12 +466,16 @@ export function Chat() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deletingChat !== null} onOpenChange={() => setDeletingChat(null)}>
+      <AlertDialog
+        open={deletingChat !== null}
+        onOpenChange={() => setDeletingChat(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Chat</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this chat? This action cannot be undone.
+              Are you sure you want to delete this chat? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
