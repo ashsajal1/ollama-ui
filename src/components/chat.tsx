@@ -75,6 +75,30 @@ export function Chat() {
   const [editingChat, setEditingChat] = useState<Chat | null>(null);
   const [editingName, setEditingName] = useState("");
   const [deletingChat, setDeletingChat] = useState<Chat | null>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
+  // Function to handle scroll events
+  const handleScroll = () => {
+    if (!scrollAreaRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
+    const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+    setShouldAutoScroll(isAtBottom);
+  };
+
+  useEffect(() => {
+    if (!scrollAreaRef.current) return;
+    const scrollArea = scrollAreaRef.current;
+    
+    scrollArea.addEventListener('scroll', handleScroll);
+    return () => scrollArea.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (scrollAreaRef.current && shouldAutoScroll) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages, shouldAutoScroll]);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -114,12 +138,6 @@ export function Chat() {
     loadModels();
     loadChats();
   }, [toast]);
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, [messages]);
 
   const createNewChat = async (message: string) => {
     try {
@@ -299,7 +317,7 @@ export function Chat() {
   };
 
   return (
-    <div className="flex h-[80vh] max-w-4xl mx-auto">
+    <div className="flex h-[calc(100vh-90px)] max-w-4xl mx-auto">
       {/* Sidebar toggle button */}
       <Button
         variant="ghost"
@@ -311,8 +329,8 @@ export function Chat() {
       </Button>
 
       {/* Chat list sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r flex flex-col`}>
-        <div className="p-4">
+      <div className={`${isSidebarOpen ? 'w-72' : 'w-0'} transition-all duration-300 border-r flex flex-col bg-background overflow-hidden`}>
+        <div className="p-4 h-full flex flex-col">
           <Button 
             onClick={handleNewChat}
             className="mb-4 w-full"
@@ -320,35 +338,38 @@ export function Chat() {
             New Chat
           </Button>
           <ScrollArea className="flex-1">
-            <div className="space-y-2">
+            <div className="space-y-2 pr-2">
               {chats.map((chat) => (
-                <ContextMenu key={chat.id}>
-                  <ContextMenuTrigger>
+                <div key={chat.id} className="group flex items-center gap-2">
+                  <Button
+                    variant={currentChatId === chat.id ? "secondary" : "ghost"}
+                    className="flex-1 justify-start truncate h-9 px-3"
+                    onClick={() => loadChat(chat.id)}
+                  >
+                    {chat.name}
+                  </Button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
-                      variant={currentChatId === chat.id ? "secondary" : "ghost"}
-                      className="w-full justify-start truncate"
-                      onClick={() => loadChat(chat.id)}
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => {
+                        setEditingChat(chat);
+                        setEditingName(chat.name);
+                      }}
                     >
-                      {chat.name}
+                      <Pencil className="h-4 w-4" />
                     </Button>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuItem onClick={() => {
-                      setEditingChat(chat);
-                      setEditingName(chat.name);
-                    }}>
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Edit Name
-                    </ContextMenuItem>
-                    <ContextMenuItem 
-                      className="text-destructive"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive"
                       onClick={() => setDeletingChat(chat)}
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
           </ScrollArea>
@@ -356,8 +377,8 @@ export function Chat() {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex justify-end p-4">
+      <div className="flex-1 flex flex-col min-h-0 relative bg-background">
+        <div className="absolute top-0 right-0 p-4 z-10 bg-background/80 backdrop-blur">
           <Select value={selectedModel} onValueChange={setSelectedModel}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select a model" />
@@ -372,7 +393,7 @@ export function Chat() {
           </Select>
         </div>
 
-        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <ScrollArea className="flex-1 px-4 pt-16 pb-20" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground">
@@ -394,13 +415,13 @@ export function Chat() {
           </div>
         </ScrollArea>
 
-        <form onSubmit={handleSubmit} className="p-4 border-t">
-          <div className="flex gap-2">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
+          <form onSubmit={handleSubmit} className="flex gap-2">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
-              className="min-h-[50px]"
+              className="min-h-[50px] max-h-[200px]"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -411,8 +432,8 @@ export function Chat() {
             <Button type="submit" disabled={isLoading}>
               <SendHorizontal className="h-4 w-4" />
             </Button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
 
       {/* Edit Dialog */}

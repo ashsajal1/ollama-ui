@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/navbar";
 import Nprogress from "@/components/nprogress";
-import { Footer } from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,7 +31,6 @@ export default function RootLayout({
           <Nprogress />
           <Navbar />
           <main className="flex-1 p-3 mt-[80px]">{children}</main>
-          <Footer />
           <Toaster />
         </ThemeProvider>
       </body>
