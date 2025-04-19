@@ -68,6 +68,10 @@ interface Chat {
   updatedAt: Date;
 }
 
+interface ChatProps {
+  initialChatId?: string;
+}
+
 const preGeneratedPrompts = [
   {
     title: "Code Explanation",
@@ -95,7 +99,7 @@ const preGeneratedPrompts = [
   },
 ];
 
-export function Chat() {
+export function Chat({ initialChatId }: ChatProps) {
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -184,6 +188,20 @@ export function Chat() {
         const chatList = await response.json();
         if (mounted) {
           setChats(chatList);
+          // If initialChatId is provided, load that chat
+          if (initialChatId) {
+            const chat = chatList.find((c: Chat) => c.id === initialChatId);
+            if (chat) {
+              setMessages(chat.messages);
+              setCurrentChatId(initialChatId);
+            } else {
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Chat not found.",
+              });
+            }
+          }
         }
       } catch (error) {
         if (mounted) {
@@ -203,7 +221,7 @@ export function Chat() {
     return () => {
       mounted = false;
     };
-  }, [toast]);
+  }, [toast, initialChatId]);
 
   const createNewChat = async (message: string) => {
     try {
