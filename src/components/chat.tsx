@@ -46,6 +46,7 @@ export function Chat() {
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("llama2");
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [chats, setChats] = useState<Chat[]>([]);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -65,7 +66,25 @@ export function Chat() {
         });
       }
     };
+
+    const loadChats = async () => {
+      try {
+        const response = await fetch("/api/chat");
+        if (!response.ok) throw new Error("Failed to fetch chats");
+        const chatList = await response.json();
+        setChats(chatList);
+      } catch (error) {
+        console.error("Error loading chats:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load chat history.",
+        });
+      }
+    };
+
     loadModels();
+    loadChats();
   }, [toast]);
 
   useEffect(() => {
@@ -172,64 +191,119 @@ export function Chat() {
     }
   };
 
+  // Add function to handle new chat
+  const handleNewChat = () => {
+    setMessages([]);
+    setCurrentChatId(null);
+    setInput("");
+  };
+
+  // Add function to load chat history
+  const loadChat = async (chatId: string) => {
+    try {
+      setIsLoading(true);
+      const chat = chats.find((c) => c.id === chatId);
+      if (chat) {
+        setMessages(chat.messages);
+        setCurrentChatId(chatId);
+      }
+    } catch (error) {
+      console.error("Error loading chat:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load chat.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-[80vh] max-w-4xl mx-auto">
-      <div className="flex justify-end p-4">
-        <Select value={selectedModel} onValueChange={setSelectedModel}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            {models.map((model) => (
-              <SelectItem key={model.name} value={model.name}>
-                {model.name}
-              </SelectItem>
+    <div className="flex h-[80vh] max-w-4xl mx-auto">
+      {/* Chat list sidebar */}
+      <div className="w-64 border-r p-4 flex flex-col">
+        <Button 
+          onClick={handleNewChat}
+          className="mb-4 w-full"
+        >
+          New Chat
+        </Button>
+        <ScrollArea className="flex-1">
+          <div className="space-y-2">
+            {chats.map((chat) => (
+              <Button
+                key={chat.id}
+                variant={currentChatId === chat.id ? "secondary" : "ghost"}
+                className="w-full justify-start truncate"
+                onClick={() => loadChat(chat.id)}
+              >
+                {chat.name}
+              </Button>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        </ScrollArea>
       </div>
 
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center text-muted-foreground">
-              Start a conversation with Ollama
-            </div>
-          )}
-          {messages.map((message, i) => (
-            <Card
-              key={i}
-              className={`p-4 ${
-                message.role === "user"
-                  ? "ml-auto bg-primary text-primary-foreground"
-                  : "mr-auto bg-muted"
-              } max-w-[80%]`}
-            >
-              {message.content}
-            </Card>
-          ))}
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex justify-end p-4">
+          <Select value={selectedModel} onValueChange={setSelectedModel}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select a model" />
+            </SelectTrigger>
+            <SelectContent>
+              {models.map((model) => (
+                <SelectItem key={model.name} value={model.name}>
+                  {model.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t">
-        <div className="flex gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="min-h-[50px]"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-          />
-          <Button type="submit" disabled={isLoading}>
-            <SendHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
-      </form>
+        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+          <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center text-muted-foreground">
+                Start a conversation with Ollama
+              </div>
+            )}
+            {messages.map((message, i) => (
+              <Card
+                key={i}
+                className={`p-4 ${
+                  message.role === "user"
+                    ? "ml-auto bg-primary text-primary-foreground"
+                    : "mr-auto bg-muted"
+                } max-w-[80%]`}
+              >
+                {message.content}
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
+
+        <form onSubmit={handleSubmit} className="p-4 border-t">
+          <div className="flex gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              className="min-h-[50px]"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            />
+            <Button type="submit" disabled={isLoading}>
+              <SendHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
