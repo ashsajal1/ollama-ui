@@ -351,7 +351,7 @@ export function Chat() {
   };
 
   return (
-    <div className="flex mt-4 h-screen max-w-full mx-auto">
+    <div className="flex h-screen max-w-full mx-auto">
       {/* Fixed Header when sidebar is collapsed */}
       {!isSidebarOpen && (
         <div className="fixed top-0 left-0 p-4 z-20 flex items-center gap-2">
