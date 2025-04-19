@@ -5,7 +5,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
-import { SendHorizontal } from "lucide-react";
+import { SendHorizontal, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { chatWithOllama, getModels, streamChat } from "@/lib/ollama";
 import { useToast } from "./ui/use-toast";
 import {
@@ -15,6 +15,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Message {
   id?: string;
@@ -47,6 +71,10 @@ export function Chat() {
   const [selectedModel, setSelectedModel] = useState<string>("llama2");
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [editingChat, setEditingChat] = useState<Chat | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [deletingChat, setDeletingChat] = useState<Chat | null>(null);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -219,30 +247,112 @@ export function Chat() {
     }
   };
 
+  const handleEditChat = async (chat: Chat) => {
+    if (!editingName.trim()) return;
+    try {
+      const response = await fetch(`/api/chat/${chat.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: editingName }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update chat');
+
+      const updatedChat = await response.json();
+      setChats(chats.map(c => c.id === chat.id ? updatedChat : c));
+      setEditingChat(null);
+      setEditingName("");
+    } catch (error) {
+      console.error('Error updating chat:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update chat name.",
+      });
+    }
+  };
+
+  const handleDeleteChat = async (chat: Chat) => {
+    try {
+      const response = await fetch(`/api/chat/${chat.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete chat');
+
+      setChats(chats.filter(c => c.id !== chat.id));
+      if (currentChatId === chat.id) {
+        setMessages([]);
+        setCurrentChatId(null);
+      }
+      setDeletingChat(null);
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete chat.",
+      });
+    }
+  };
+
   return (
     <div className="flex h-[80vh] max-w-4xl mx-auto">
+      {/* Sidebar toggle button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-10"
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+      >
+        {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
+      </Button>
+
       {/* Chat list sidebar */}
-      <div className="w-64 border-r p-4 flex flex-col">
-        <Button 
-          onClick={handleNewChat}
-          className="mb-4 w-full"
-        >
-          New Chat
-        </Button>
-        <ScrollArea className="flex-1">
-          <div className="space-y-2">
-            {chats.map((chat) => (
-              <Button
-                key={chat.id}
-                variant={currentChatId === chat.id ? "secondary" : "ghost"}
-                className="w-full justify-start truncate"
-                onClick={() => loadChat(chat.id)}
-              >
-                {chat.name}
-              </Button>
-            ))}
-          </div>
-        </ScrollArea>
+      <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} overflow-hidden transition-all duration-300 border-r flex flex-col`}>
+        <div className="p-4">
+          <Button 
+            onClick={handleNewChat}
+            className="mb-4 w-full"
+          >
+            New Chat
+          </Button>
+          <ScrollArea className="flex-1">
+            <div className="space-y-2">
+              {chats.map((chat) => (
+                <ContextMenu key={chat.id}>
+                  <ContextMenuTrigger>
+                    <Button
+                      variant={currentChatId === chat.id ? "secondary" : "ghost"}
+                      className="w-full justify-start truncate"
+                      onClick={() => loadChat(chat.id)}
+                    >
+                      {chat.name}
+                    </Button>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuItem onClick={() => {
+                      setEditingChat(chat);
+                      setEditingName(chat.name);
+                    }}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit Name
+                    </ContextMenuItem>
+                    <ContextMenuItem 
+                      className="text-destructive"
+                      onClick={() => setDeletingChat(chat)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
 
       {/* Main chat area */}
@@ -304,6 +414,51 @@ export function Chat() {
           </div>
         </form>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editingChat !== null} onOpenChange={() => setEditingChat(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Chat Name</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={editingName}
+              onChange={(e) => setEditingName(e.target.value)}
+              placeholder="Enter new name"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditingChat(null)}>
+              Cancel
+            </Button>
+            <Button onClick={() => editingChat && handleEditChat(editingChat)}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deletingChat !== null} onOpenChange={() => setDeletingChat(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this chat? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deletingChat && handleDeleteChat(deletingChat)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
