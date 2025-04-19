@@ -15,12 +15,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Chat {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  id        String    @id @default(uuid())
   name      String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -28,10 +28,10 @@ model Chat {
 }
 
 model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(uuid())
   content   String
   role      String
-  chatId    String   @db.ObjectId
+  chatId    String
   chat      Chat     @relation(fields: [chatId], references: [id])
   createdAt DateTime @default(now())
 }
