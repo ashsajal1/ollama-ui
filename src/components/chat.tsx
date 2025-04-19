@@ -243,7 +243,6 @@ export function Chat({ initialChatId }: ChatProps) {
       if (!response.ok) throw new Error("Failed to create chat");
 
       const chat = await response.json();
-      setCurrentChatId(chat.id);
       return chat.id;
     } catch (error) {
       console.error("Error creating chat:", error);
