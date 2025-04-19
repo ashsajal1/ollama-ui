@@ -47,6 +47,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Message {
   id?: string;
@@ -115,6 +116,8 @@ export function Chat({ initialChatId }: ChatProps) {
   const [editingName, setEditingName] = useState("");
   const [deletingChat, setDeletingChat] = useState<Chat | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
+  const router = useRouter();
 
   const responseInProgress = useRef(false);
   const currentMessageRef = useRef<Message | null>(null);
@@ -334,10 +337,23 @@ export function Chat({ initialChatId }: ChatProps) {
   };
 
   // Add function to handle new chat
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
     setMessages([]);
     setCurrentChatId(null);
     setInput("");
+
+    const id = await createNewChat("New chat");
+    // Fetch the new chat
+    if (id) {
+      // route to /chatId
+      router.push(`/${id}`);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to create new chat.",
+      });
+    }
   };
 
   // Add function to load chat history
