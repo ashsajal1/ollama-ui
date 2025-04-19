@@ -465,7 +465,9 @@ export function Chat() {
           <div className="space-y-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center mt-8 space-y-6">
-                <h2 className="text-2xl font-semibold text-center">Choose a prompt or start typing</h2>
+                <h2 className="text-2xl font-semibold text-center">
+                  Choose a prompt or start typing
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mx-auto p-4">
                   {preGeneratedPrompts.map((item, index) => (
                     <Card
@@ -474,12 +476,14 @@ export function Chat() {
                       onClick={() => {
                         setInput(item.prompt);
                         // Focus the textarea
-                        const textarea = document.querySelector('textarea');
+                        const textarea = document.querySelector("textarea");
                         if (textarea) textarea.focus();
                       }}
                     >
                       <h3 className="font-medium mb-2">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.prompt}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.prompt}
+                      </p>
                     </Card>
                   ))}
                 </div>
@@ -492,7 +496,7 @@ export function Chat() {
                     message.role === "user"
                       ? "ml-auto bg-primary text-primary-foreground"
                       : "mr-auto bg-muted"
-                  } max-w-[80%]`}
+                  } max-w-[80%] ${i === 0 ? "mt-4" : ""}`}
                 >
                   {message.content}
                 </Card>
