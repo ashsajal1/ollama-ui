@@ -111,6 +111,9 @@ export function Chat() {
   const [deletingChat, setDeletingChat] = useState<Chat | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
+  const responseInProgress = useRef(false);
+  const currentMessageRef = useRef<Message | null>(null);
+
   // Function to handle scroll events
   const handleScroll = () => {
     if (!scrollAreaRef.current) return;
@@ -123,33 +126,54 @@ export function Chat() {
   useEffect(() => {
     if (!scrollAreaRef.current) return;
     const scrollArea = scrollAreaRef.current;
+    let mounted = true;
+
+    const handleScroll = () => {
+      if (!mounted || !scrollAreaRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
+      const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+      setShouldAutoScroll(isAtBottom);
+    };
 
     scrollArea.addEventListener("scroll", handleScroll);
-    return () => scrollArea.removeEventListener("scroll", handleScroll);
+    return () => {
+      mounted = false;
+      scrollArea.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   useEffect(() => {
-    if (scrollAreaRef.current && shouldAutoScroll) {
+    let mounted = true;
+    if (scrollAreaRef.current && shouldAutoScroll && mounted) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
+    return () => {
+      mounted = false;
+    };
   }, [messages, shouldAutoScroll]);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadModels = async () => {
       try {
         const modelList = await getModels();
-        setModels(modelList);
-        if (modelList.length > 0) {
-          setSelectedModel(modelList[0].name);
+        if (mounted) {
+          setModels(modelList);
+          if (modelList.length > 0) {
+            setSelectedModel(modelList[0].name);
+          }
         }
       } catch (error) {
-        console.error("Error loading models:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description:
-            "Failed to load available models. Please make sure Ollama is running.",
-        });
+        if (mounted) {
+          console.error("Error loading models:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description:
+              "Failed to load available models. Please make sure Ollama is running.",
+          });
+        }
       }
     };
 
@@ -158,19 +182,27 @@ export function Chat() {
         const response = await fetch("/api/chat");
         if (!response.ok) throw new Error("Failed to fetch chats");
         const chatList = await response.json();
-        setChats(chatList);
+        if (mounted) {
+          setChats(chatList);
+        }
       } catch (error) {
-        console.error("Error loading chats:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load chat history.",
-        });
+        if (mounted) {
+          console.error("Error loading chats:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load chat history.",
+          });
+        }
       }
     };
 
     loadModels();
     loadChats();
+
+    return () => {
+      mounted = false;
+    };
   }, [toast]);
 
   const createNewChat = async (message: string) => {
@@ -221,12 +253,13 @@ export function Chat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || responseInProgress.current) return;
 
     const userMessage: Message = { role: "user", content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    responseInProgress.current = true;
 
     try {
       // Create a new chat if this is the first message
@@ -237,6 +270,7 @@ export function Chat() {
 
       // Initialize an empty assistant message
       const assistantMessage: Message = { role: "assistant", content: "" };
+      currentMessageRef.current = assistantMessage;
       setMessages((prev) => [...prev, assistantMessage]);
 
       // Stream the response
@@ -244,18 +278,22 @@ export function Chat() {
         [...messages, userMessage],
         selectedModel
       )) {
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          lastMessage.content += chunk.message.content;
-          return newMessages;
-        });
+        if (currentMessageRef.current) {
+          currentMessageRef.current.content += chunk.message.content;
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === "assistant") {
+              lastMessage.content = currentMessageRef.current?.content || "";
+            }
+            return newMessages;
+          });
+        }
       }
 
       // Save messages to the database after streaming is complete
-      if (currentChatId) {
-        const lastMessage = messages[messages.length - 1];
-        await saveMessages(currentChatId, [userMessage, lastMessage]);
+      if (currentChatId && currentMessageRef.current) {
+        await saveMessages(currentChatId, [userMessage, currentMessageRef.current]);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -268,6 +306,8 @@ export function Chat() {
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
+      responseInProgress.current = false;
+      currentMessageRef.current = null;
     }
   };
 
