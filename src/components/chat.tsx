@@ -317,7 +317,7 @@ export function Chat() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-90px)] max-w-4xl mx-auto">
+    <div className="flex h-[calc(100vh-90px)] max-w-full mx-auto">
       {/* Sidebar toggle button */}
       <Button
         variant="ghost"
