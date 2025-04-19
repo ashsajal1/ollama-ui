@@ -5,7 +5,13 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
-import { SendHorizontal, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import {
+  SendHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { chatWithOllama, getModels, streamChat } from "@/lib/ollama";
 import { useToast } from "./ui/use-toast";
 import {
@@ -80,7 +86,7 @@ export function Chat() {
   // Function to handle scroll events
   const handleScroll = () => {
     if (!scrollAreaRef.current) return;
-    
+
     const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
     const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
     setShouldAutoScroll(isAtBottom);
@@ -89,9 +95,9 @@ export function Chat() {
   useEffect(() => {
     if (!scrollAreaRef.current) return;
     const scrollArea = scrollAreaRef.current;
-    
-    scrollArea.addEventListener('scroll', handleScroll);
-    return () => scrollArea.removeEventListener('scroll', handleScroll);
+
+    scrollArea.addEventListener("scroll", handleScroll);
+    return () => scrollArea.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -269,21 +275,21 @@ export function Chat() {
     if (!editingName.trim()) return;
     try {
       const response = await fetch(`/api/chat/${chat.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ name: editingName }),
       });
 
-      if (!response.ok) throw new Error('Failed to update chat');
+      if (!response.ok) throw new Error("Failed to update chat");
 
       const updatedChat = await response.json();
-      setChats(chats.map(c => c.id === chat.id ? updatedChat : c));
+      setChats(chats.map((c) => (c.id === chat.id ? updatedChat : c)));
       setEditingChat(null);
       setEditingName("");
     } catch (error) {
-      console.error('Error updating chat:', error);
+      console.error("Error updating chat:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -295,19 +301,19 @@ export function Chat() {
   const handleDeleteChat = async (chat: Chat) => {
     try {
       const response = await fetch(`/api/chat/${chat.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
-      if (!response.ok) throw new Error('Failed to delete chat');
+      if (!response.ok) throw new Error("Failed to delete chat");
 
-      setChats(chats.filter(c => c.id !== chat.id));
+      setChats(chats.filter((c) => c.id !== chat.id));
       if (currentChatId === chat.id) {
         setMessages([]);
         setCurrentChatId(null);
       }
       setDeletingChat(null);
     } catch (error) {
-      console.error('Error deleting chat:', error);
+      console.error("Error deleting chat:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -317,7 +323,7 @@ export function Chat() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-90px)] max-w-full mx-auto">
+    <div className="flex h-screen max-w-full mx-auto">
       {/* Fixed Header when sidebar is collapsed */}
       {!isSidebarOpen && (
         <div className="fixed top-0 left-0 p-4 z-20 flex items-center gap-2">
@@ -379,9 +385,14 @@ export function Chat() {
               <ScrollArea className="flex-1">
                 <div className="space-y-2 pr-2">
                   {chats.map((chat) => (
-                    <div key={chat.id} className="group flex items-center gap-2">
+                    <div
+                      key={chat.id}
+                      className="group flex items-center gap-2"
+                    >
                       <Button
-                        variant={currentChatId === chat.id ? "secondary" : "ghost"}
+                        variant={
+                          currentChatId === chat.id ? "secondary" : "ghost"
+                        }
                         className="flex-1 justify-start truncate h-9 px-3"
                         onClick={() => loadChat(chat.id)}
                       >
