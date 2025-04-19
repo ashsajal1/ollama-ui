@@ -381,7 +381,7 @@ export function Chat() {
       <div
         className={`${
           isSidebarOpen ? "w-72" : "w-0"
-        } transition-all duration-300 border-r flex flex-col bg-background overflow-hidden`}
+        } transition-all duration-300 border-r flex flex-col bg-background overflow-hidden h-screen sticky top-0`}
       >
         {isSidebarOpen && (
           <>
@@ -406,11 +406,13 @@ export function Chat() {
                 <ChevronLeft />
               </Button>
             </div>
-            <div className="p-4 h-full flex flex-col">
-              <Button onClick={handleNewChat} className="mb-4 w-full">
-                New Chat
-              </Button>
-              <ScrollArea className="flex-1">
+            <div className="flex flex-col h-full overflow-hidden">
+              <div className="p-4">
+                <Button onClick={handleNewChat} className="w-full">
+                  New Chat
+                </Button>
+              </div>
+              <ScrollArea className="flex-1 px-4">
                 <div className="space-y-2 pr-2">
                   {chats.map((chat) => (
                     <div
