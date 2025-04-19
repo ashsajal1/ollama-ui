@@ -414,6 +414,7 @@ export function Chat({ initialChatId }: ChatProps) {
       if (currentChatId === chat.id) {
         setMessages([]);
         setCurrentChatId(null);
+        router.push('/');
       }
       setDeletingChat(null);
     } catch (error) {
