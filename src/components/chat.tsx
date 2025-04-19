@@ -60,7 +60,8 @@ export function Chat() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to load available models. Please make sure Ollama is running.",
+          description:
+            "Failed to load available models. Please make sure Ollama is running.",
         });
       }
     };
@@ -87,7 +88,7 @@ export function Chat() {
       });
 
       if (!response.ok) throw new Error("Failed to create chat");
-      
+
       const chat = await response.json();
       setCurrentChatId(chat.id);
       return chat.id;
@@ -110,7 +111,7 @@ export function Chat() {
       });
 
       if (!response.ok) throw new Error("Failed to save messages");
-      
+
       const chat = await response.json();
       return chat;
     } catch (error) {
@@ -140,7 +141,10 @@ export function Chat() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       // Stream the response
-      for await (const chunk of streamChat([...messages, userMessage], selectedModel)) {
+      for await (const chunk of streamChat(
+        [...messages, userMessage],
+        selectedModel
+      )) {
         setMessages((prev) => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
@@ -184,7 +188,7 @@ export function Chat() {
           </SelectContent>
         </Select>
       </div>
-      
+
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-4">
           {messages.length === 0 && (
@@ -204,15 +208,6 @@ export function Chat() {
               {message.content}
             </Card>
           ))}
-          {isLoading && (
-            <Card className="mr-auto bg-muted p-4 max-w-[80%]">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" />
-              </div>
-            </Card>
-          )}
         </div>
       </ScrollArea>
 
