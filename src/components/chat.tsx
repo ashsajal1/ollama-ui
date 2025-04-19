@@ -491,11 +491,11 @@ export function Chat({ initialChatId }: ChatProps) {
               <ScrollArea className="flex-1 px-4">
                 <div className="space-y-2 pr-2">
                   {chats.map((chat) => (
-                    <Link key={chat.id} href={`/${chat.id}`}>
-                      <div
-                        key={chat.id}
-                        className="group flex items-center gap-2"
-                      >
+                    <div
+                      key={chat.id}
+                      className="group flex items-center gap-2"
+                    >
+                      <Link href={`/${chat.id}`}>
                         <Button
                           variant={
                             currentChatId === chat.id ? "secondary" : "ghost"
@@ -506,29 +506,29 @@ export function Chat({ initialChatId }: ChatProps) {
                           {chat.name.slice(0, 20) +
                             (chat.name.length > 20 ? "..." : "")}
                         </Button>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => {
-                              setEditingChat(chat);
-                              setEditingName(chat.name);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive"
-                            onClick={() => setDeletingChat(chat)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                      </Link>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setEditingChat(chat);
+                            setEditingName(chat.name);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive"
+                          onClick={() => setDeletingChat(chat)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </ScrollArea>
