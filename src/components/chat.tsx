@@ -318,71 +318,18 @@ export function Chat() {
 
   return (
     <div className="flex h-[calc(100vh-90px)] max-w-full mx-auto">
-      {/* Sidebar toggle button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-10"
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-      >
-        {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
-      </Button>
-
-      {/* Chat list sidebar */}
-      <div
-        className={`${
-          isSidebarOpen ? "w-72" : "w-0"
-        } transition-all duration-300 border-r flex flex-col bg-background overflow-hidden`}
-      >
-        <div className="p-4 h-full flex flex-col">
-          <Button onClick={handleNewChat} className="mb-4 w-full">
-            New Chat
+      {/* Fixed Header when sidebar is collapsed */}
+      {!isSidebarOpen && (
+        <div className="fixed top-0 left-0 p-4 z-20 flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <ChevronRight />
           </Button>
-          <ScrollArea className="flex-1">
-            <div className="space-y-2 pr-2">
-              {chats.map((chat) => (
-                <div key={chat.id} className="group flex items-center gap-2">
-                  <Button
-                    variant={currentChatId === chat.id ? "secondary" : "ghost"}
-                    className="flex-1 justify-start truncate h-9 px-3"
-                    onClick={() => loadChat(chat.id)}
-                  >
-                    {chat.name.slice(0, 20) +
-                      (chat.name.length > 20 ? "..." : "")}
-                  </Button>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => {
-                        setEditingChat(chat);
-                        setEditingName(chat.name);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive"
-                      onClick={() => setDeletingChat(chat)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-      </div>
-
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-h-0 relative bg-background">
-        <div className="absolute top-0 right-0 p-4 z-10 bg-background/80 backdrop-blur">
           <Select value={selectedModel} onValueChange={setSelectedModel}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a model" />
             </SelectTrigger>
             <SelectContent>
@@ -394,11 +341,89 @@ export function Chat() {
             </SelectContent>
           </Select>
         </div>
+      )}
 
-        <ScrollArea className="flex-1 px-4 pt-16 pb-20" ref={scrollAreaRef}>
+      {/* Chat list sidebar with header */}
+      <div
+        className={`${
+          isSidebarOpen ? "w-72" : "w-0"
+        } transition-all duration-300 border-r flex flex-col bg-background overflow-hidden`}
+      >
+        {isSidebarOpen && (
+          <>
+            <div className="p-4 border-b flex items-center justify-between">
+              <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {models.map((model) => (
+                    <SelectItem key={model.name} value={model.name}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <ChevronLeft />
+              </Button>
+            </div>
+            <div className="p-4 h-full flex flex-col">
+              <Button onClick={handleNewChat} className="mb-4 w-full">
+                New Chat
+              </Button>
+              <ScrollArea className="flex-1">
+                <div className="space-y-2 pr-2">
+                  {chats.map((chat) => (
+                    <div key={chat.id} className="group flex items-center gap-2">
+                      <Button
+                        variant={currentChatId === chat.id ? "secondary" : "ghost"}
+                        className="flex-1 justify-start truncate h-9 px-3"
+                        onClick={() => loadChat(chat.id)}
+                      >
+                        {chat.name.slice(0, 20) +
+                          (chat.name.length > 20 ? "..." : "")}
+                      </Button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setEditingChat(chat);
+                            setEditingName(chat.name);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive"
+                          onClick={() => setDeletingChat(chat)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col min-h-0 relative bg-background">
+        <ScrollArea className="flex-1 px-4 pb-20" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.length === 0 && (
-              <div className="text-center text-muted-foreground">
+              <div className="text-center text-muted-foreground mt-8">
                 Start a conversation with Ollama
               </div>
             )}
