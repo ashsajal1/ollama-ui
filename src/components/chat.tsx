@@ -493,7 +493,7 @@ export function Chat({ initialChatId }: ChatProps) {
                   {chats.map((chat) => (
                     <div
                       key={chat.id}
-                      className="group flex items-center gap-2"
+                      className="group flex justify-between cursor-pointer items-center gap-2"
                     >
                       <Link href={`/${chat.id}`}>
                         <Button
