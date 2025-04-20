@@ -7,6 +7,8 @@ import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import {
   SendHorizontal,
   ChevronLeft,
@@ -659,28 +661,43 @@ export function Chat({ initialChatId }: ChatProps) {
                     <ReactMarkdown 
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        pre: ({ children, ...props }: ComponentProps<"pre">) => (
-                          <div className="relative group">
-                            <pre {...props} className="overflow-x-auto p-4 rounded bg-secondary text-secondary-foreground">
-                              {children}
-                            </pre>
-                          </div>
-                        ),
-                        code: ({ children, className, ...props }: ComponentProps<"code">) => {
-                          const isInline = !className;
+                        pre: ({ children }) => <>{children}</>,
+                        code: ({ node, inline, className, children, ...props }) => {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const language = match ? match[1] : '';
+                          
+                          if (!inline && language) {
+                            return (
+                              <div className="relative group">
+                                <SyntaxHighlighter
+                                  {...props}
+                                  style={oneDark}
+                                  language={language}
+                                  PreTag="div"
+                                  customStyle={{
+                                    margin: 0,
+                                    padding: '1rem',
+                                    borderRadius: '0.375rem',
+                                  }}
+                                >
+                                  {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                              </div>
+                            );
+                          }
+                          
                           return (
-                            <code 
-                              {...props} 
-                              className={isInline 
+                            <code
+                              {...props}
+                              className={inline 
                                 ? "px-1 py-0.5 rounded bg-secondary text-secondary-foreground text-sm" 
-                                : className
-                              }
+                                : "block p-4 rounded bg-secondary text-secondary-foreground overflow-x-auto"}
                             >
                               {children}
                             </code>
                           );
                         },
-                        p: ({ children }: ComponentProps<"p">) => (
+                        p: ({ children }) => (
                           <p className="mb-4 last:mb-0">{children}</p>
                         )
                       }}
