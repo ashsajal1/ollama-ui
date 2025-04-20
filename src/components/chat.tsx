@@ -266,6 +266,7 @@ export function Chat({ initialChatId }: ChatProps) {
         if (resp) {
           const chat = await resp.json();
           setCurrentChatId(chat.id);
+          setChatName(newMessages[0].content.slice(0, 30) + "...");
         } else {
           console.log("Issue with creating chat");
         }
