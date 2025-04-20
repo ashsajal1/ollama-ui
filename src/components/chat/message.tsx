@@ -15,25 +15,15 @@ interface MessageProps {
 }
 
 export function Message({ message, isFirstMessage }: MessageProps) {
-  const [copyStates, setCopyStates] = useState<{
-    [key: string]: CopyButtonState;
-  }>({});
+  const [copyStates, setCopyStates] = useState(false);
 
   const copyToClipboard = async (text: string, blockId: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopyStates((prev) => ({
-        ...prev,
-        [blockId]: {
-          copied: true,
-          timeoutId: setTimeout(() => {
-            setCopyStates((current) => ({
-              ...current,
-              [blockId]: { copied: false },
-            }));
-          }, 2000),
-        },
-      }));
+      setCopyStates(true);
+      setTimeout(() => {
+        setCopyStates(false);
+      }, 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -81,7 +71,7 @@ export function Message({ message, isFirstMessage }: MessageProps) {
                           className="h-8 w-8"
                           onClick={() => copyToClipboard(content, blockId)}
                         >
-                          {copyStates[blockId]?.copied ? (
+                          {copyStates ? (
                             <Check className="h-4 w-4" />
                           ) : (
                             <Copy className="h-4 w-4" />
