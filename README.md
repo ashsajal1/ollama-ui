@@ -46,6 +46,8 @@ A modern, feature-rich web interface built with Next.js and shadcn/ui for intera
 
 ## 🚀 Getting Started
 
+For detailed setup instructions including database configuration and common commands, please see our [How to Use Guide](HOW_TO_USE.md).
+
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/ashsajal1/ollama-ui
