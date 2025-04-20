@@ -23,25 +23,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Message } from "./chat/message";
+import { EditChatDialog } from "./chat/edit-chat-dialog";
+import { DeleteChatDialog } from "./chat/delete-chat-dialog";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Chat as ChatTypeMain } from "@prisma/client";
@@ -684,57 +668,20 @@ export function Chat({ initialChatId }: ChatProps) {
         </div>
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog
+      {/* Replace old dialogs with new components */}
+      <EditChatDialog
+        chat={editingChat}
         open={editingChat !== null}
-        onOpenChange={() => setEditingChat(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Chat Name</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              value={editingName}
-              onChange={(e) => setEditingName(e.target.value)}
-              placeholder="Enter new name"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditingChat(null)}>
-              Cancel
-            </Button>
-            <Button onClick={() => editingChat && handleEditChat(editingChat)}>
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={(open) => !open && setEditingChat(null)}
+        onSave={handleEditChat}
+      />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
+      <DeleteChatDialog
+        chat={deletingChat}
         open={deletingChat !== null}
-        onOpenChange={() => setDeletingChat(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this chat? This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deletingChat && handleDeleteChat(deletingChat)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onOpenChange={(open) => !open && setDeletingChat(null)}
+        onDelete={handleDeleteChat}
+      />
     </div>
   );
 }
