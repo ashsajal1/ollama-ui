@@ -116,6 +116,7 @@ export function Chat({ initialChatId }: ChatProps) {
   const [editingName, setEditingName] = useState("");
   const [deletingChat, setDeletingChat] = useState<Chat | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [chatName, setChatName] = useState("");
 
   const router = useRouter();
 
@@ -522,8 +523,10 @@ export function Chat({ initialChatId }: ChatProps) {
                           className="flex-1 justify-start truncate h-9 px-3 w-full"
                           onClick={() => loadChat(chat.id)}
                         >
-                          {chat.name.slice(0, 20) +
-                            (chat.name.length > 20 ? "..." : "")}
+                          {chat.id === currentChatId
+                            ? chatName
+                            : chat.name.slice(0, 20) +
+                              (chat.name.length > 20 ? "..." : "")}
                         </Button>
                       </Link>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
