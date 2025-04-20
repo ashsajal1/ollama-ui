@@ -5,18 +5,12 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import {
   SendHorizontal,
   ChevronLeft,
   ChevronRight,
   Pencil,
   Trash2,
-  Copy,
-  Check,
   Square,
 } from "lucide-react";
 import { getModels, streamChat } from "@/lib/ollama";
@@ -28,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Message } from "./chat/message";
 
 import {
   Dialog,
@@ -50,12 +45,11 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Chat as ChatTypeMain } from "@prisma/client";
-import { CodeBlockProps, CopyButtonState } from "@/types/code";
-import { Message, ChatProps, PreGeneratedPrompt } from "@/types/chat";
+import { Message as MessageType, ChatProps, PreGeneratedPrompt } from "@/types/chat";
 import { Model } from "@/types/model";
 
 interface ChatType extends ChatTypeMain {
-  messages: Message[];
+  messages: MessageType[];
 }
 const preGeneratedPrompts: PreGeneratedPrompt[] = [
   {
@@ -87,7 +81,7 @@ const preGeneratedPrompts: PreGeneratedPrompt[] = [
 export function Chat({ initialChatId }: ChatProps) {
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
@@ -102,41 +96,6 @@ export function Chat({ initialChatId }: ChatProps) {
       setIsGenerating(false);
     }
   };
-
-  const [copyStates, setCopyStates] = useState<{
-    [key: string]: CopyButtonState;
-  }>({});
-
-  const copyToClipboard = async (text: string, blockId: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyStates((prev) => ({
-        ...prev,
-        [blockId]: {
-          copied: true,
-          timeoutId: setTimeout(() => {
-            setCopyStates((current) => ({
-              ...current,
-              [blockId]: { copied: false },
-            }));
-          }, 2000),
-        },
-      }));
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
-  // Cleanup timeouts when unmounting
-  useEffect(() => {
-    return () => {
-      Object.values(copyStates).forEach((state) => {
-        if (state.timeoutId) {
-          clearTimeout(state.timeoutId);
-        }
-      });
-    };
-  }, [copyStates]);
 
   // Combined effect to handle model loading and selection
   useEffect(() => {
@@ -207,7 +166,7 @@ export function Chat({ initialChatId }: ChatProps) {
   const router = useRouter();
 
   const responseInProgress = useRef(false);
-  const currentMessageRef = useRef<Message | null>(null);
+  const currentMessageRef = useRef<MessageType | null>(null);
 
   // Function to handle scroll events
   const handleScroll = () => {
@@ -333,7 +292,7 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
-  const saveMessages = async (chatId: string, newMessages: Message[]) => {
+  const saveMessages = async (chatId: string, newMessages: MessageType[]) => {
     try {
       // If this is the first message, use it as the chat name
       if (messages.length === 0) {
@@ -380,7 +339,7 @@ export function Chat({ initialChatId }: ChatProps) {
     e.preventDefault();
     if (!input.trim() || isLoading || responseInProgress.current) return;
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+    const userMessage: MessageType = { role: "user", content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -395,7 +354,7 @@ export function Chat({ initialChatId }: ChatProps) {
       }
 
       // Initialize an empty assistant message
-      const assistantMessage: Message = { role: "assistant", content: "" };
+      const assistantMessage: MessageType = { role: "assistant", content: "" };
       currentMessageRef.current = assistantMessage;
       setMessages((prev) => [...prev, assistantMessage]);
 
@@ -684,90 +643,11 @@ export function Chat({ initialChatId }: ChatProps) {
               </div>
             ) : (
               messages.map((message, i) => (
-                <Card
+                <Message
                   key={i}
-                  className={`p-4 ${
-                    message.role === "user"
-                      ? "ml-auto bg-muted"
-                      : "mr-auto bg-muted"
-                  } max-w-[80%] ${i === 0 ? "mt-4" : "mb-4"}`}
-                >
-                  <div className="prose dark:prose-invert max-w-none break-words">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        pre: ({ children }) => <>{children}</>,
-                        code: ({ className, children }: CodeBlockProps) => {
-                          const match = /language-(\w+)/.exec(className || "");
-                          const language = match ? match[1] : "";
-                          const isInline = !className?.includes("language-");
-                          const blockId = Math.random()
-                            .toString(36)
-                            .substring(7);
-                          const content = String(children).replace(/\n$/, "");
-
-                          if (!isInline && language) {
-                            return (
-                              <div className="relative group">
-                                {language && (
-                                  <div className="absolute right-2 top-2 z-10 flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground bg-secondary/50 px-2 py-1 rounded">
-                                      {language}
-                                    </span>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() =>
-                                        copyToClipboard(content, blockId)
-                                      }
-                                    >
-                                      {copyStates[blockId]?.copied ? (
-                                        <Check className="h-4 w-4" />
-                                      ) : (
-                                        <Copy className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                )}
-                                <SyntaxHighlighter
-                                  style={oneDark}
-                                  language={language}
-                                  PreTag="div"
-                                  showLineNumbers={content.includes("\n")}
-                                  customStyle={{
-                                    margin: 0,
-                                    padding: "1rem",
-                                    borderRadius: "0.375rem",
-                                  }}
-                                >
-                                  {content}
-                                </SyntaxHighlighter>
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <code
-                              className={
-                                isInline
-                                  ? "px-1 py-0.5 rounded bg-secondary text-secondary-foreground text-sm"
-                                  : "block p-4 rounded bg-secondary text-secondary-foreground overflow-x-auto"
-                              }
-                            >
-                              {children}
-                            </code>
-                          );
-                        },
-                        p: ({ children }) => (
-                          <p className="mb-4 last:mb-0">{children}</p>
-                        ),
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
-                </Card>
+                  message={message}
+                  isFirstMessage={i === 0}
+                />
               ))
             )}
           </div>
