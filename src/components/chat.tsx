@@ -56,44 +56,11 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Chat as ChatType } from "@prisma/client";
-import type { ComponentProps } from "react";
+import { CodeBlockProps, CopyButtonState } from "@/types/code";
+import { Message, ChatProps, PreGeneratedPrompt } from "@/types/chat";
+import { Model } from "@/types/model";
 
-// Define our custom component types
-interface CodeBlockProps extends ComponentProps<"code"> {
-  inline?: boolean;
-}
-
-interface CopyButtonState {
-  copied: boolean;
-  timeoutId?: NodeJS.Timeout;
-}
-
-interface Message {
-  id?: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt?: Date;
-}
-
-interface Model {
-  name: string;
-  modified_at: string;
-  size: number;
-}
-
-interface Chat {
-  id: string;
-  name: string;
-  messages: Message[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface ChatProps {
-  initialChatId?: string;
-}
-
-const preGeneratedPrompts = [
+const preGeneratedPrompts: PreGeneratedPrompt[] = [
   {
     title: "Code Explanation",
     prompt: "Can you explain this code and how it works?",
