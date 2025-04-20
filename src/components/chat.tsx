@@ -15,12 +15,11 @@ import {
   ChevronRight,
   Pencil,
   Trash2,
-  Grid2X2,
   Copy,
   Check,
   Square,
 } from "lucide-react";
-import { chatWithOllama, getModels, streamChat } from "@/lib/ollama";
+import { getModels, streamChat } from "@/lib/ollama";
 import { useToast } from "./ui/use-toast";
 import {
   Select,
@@ -29,12 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+
 import {
   Dialog,
   DialogContent,
