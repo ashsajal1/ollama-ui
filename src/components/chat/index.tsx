@@ -3,11 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
 import {
-  SendHorizontal,
   ChevronRight,
-  Square,
 } from "lucide-react";
 import { getModels, streamChat } from "@/lib/ollama";
 import { useToast } from "../ui/use-toast";
@@ -23,6 +20,7 @@ import { EditChatDialog } from "./edit-chat-dialog";
 import { DeleteChatDialog } from "./delete-chat-dialog";
 import { Sidebar } from "./sidebar";
 import { PreGeneratedPrompts } from "./pre-generated-prompts";
+import { ChatInput } from "./chat-input";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -533,35 +531,14 @@ export function Chat({ initialChatId }: ChatProps) {
           </div>
         </ScrollArea>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="min-h-[50px] max-h-[200px]"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-            />
-            {isGenerating ? (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={stopGeneration}
-              >
-                <Square className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button type="submit" disabled={isLoading}>
-                <SendHorizontal className="h-4 w-4" />
-              </Button>
-            )}
-          </form>
-        </div>
+        <ChatInput
+          input={input}
+          isLoading={isLoading}
+          isGenerating={isGenerating}
+          onInputChange={setInput}
+          onSubmit={handleSubmit}
+          onStopGeneration={stopGeneration}
+        />
       </div>
 
       <EditChatDialog
