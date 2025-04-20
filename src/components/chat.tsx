@@ -48,7 +48,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { Chat as ChatType } from "@prisma/client";
 interface Message {
   id?: string;
   role: "user" | "assistant";
@@ -251,6 +251,24 @@ export function Chat({ initialChatId }: ChatProps) {
 
   const saveMessages = async (chatId: string, newMessages: Message[]) => {
     try {
+      if (messages.length === 0) {
+        const resp = await fetch(`/api/chat/${chatId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: newMessages[0].content.slice(0, 30) + "...",
+          }),
+        });
+
+        if (resp) {
+          const chat = await resp.json();
+          setCurrentChatId(chat.id);
+        } else {
+          console.log("Issue with creating chat");
+        }
+      }
       const response = await fetch(`/api/chat/${chatId}/messages`, {
         method: "POST",
         headers: {
@@ -263,7 +281,7 @@ export function Chat({ initialChatId }: ChatProps) {
 
       if (!response.ok) throw new Error("Failed to save messages");
 
-      const chat = await response.json();
+      const chat: ChatType = await response.json();
       return chat;
     } catch (error) {
       console.error("Error saving messages:", error);
@@ -414,7 +432,7 @@ export function Chat({ initialChatId }: ChatProps) {
       if (currentChatId === chat.id) {
         setMessages([]);
         setCurrentChatId(null);
-        router.push('/');
+        router.push("/");
       }
       setDeletingChat(null);
     } catch (error) {
