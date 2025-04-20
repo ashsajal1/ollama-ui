@@ -252,6 +252,7 @@ export function Chat({ initialChatId }: ChatProps) {
 
   const saveMessages = async (chatId: string, newMessages: Message[]) => {
     try {
+      // If this is the first message, use it as the chat name
       if (messages.length === 0) {
         const resp = await fetch(`/api/chat/${chatId}`, {
           method: "PATCH",
@@ -259,18 +260,19 @@ export function Chat({ initialChatId }: ChatProps) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: newMessages[0].content.slice(0, 30) + "...",
+            name: newMessages[0].content,
           }),
         });
 
-        if (resp) {
+        if (resp.ok) {
           const chat = await resp.json();
           setCurrentChatId(chat.id);
-          setChatName(newMessages[0].content.slice(0, 30) + "...");
+          setChatName(newMessages[0].content);
         } else {
           console.log("Issue with creating chat");
         }
       }
+      
       const response = await fetch(`/api/chat/${chatId}/messages`, {
         method: "POST",
         headers: {
@@ -524,13 +526,7 @@ export function Chat({ initialChatId }: ChatProps) {
                           className="flex-1 justify-start truncate h-9 px-3 w-full"
                           onClick={() => loadChat(chat.id)}
                         >
-                          {chat.id === currentChatId
-                            ? chatName.length > 0
-                              ? chatName.slice(0, 20) + "..."
-                              : chat.name.slice(0, 20) +
-                                (chat.name.length > 20 ? "..." : "")
-                            : chat.name.slice(0, 20) +
-                              (chat.name.length > 20 ? "..." : "")}
+                          {chat.id === currentChatId && chatName ? chatName : chat.name}
                         </Button>
                       </Link>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
