@@ -5,6 +5,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   SendHorizontal,
   ChevronLeft,
@@ -49,6 +51,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Chat as ChatType } from "@prisma/client";
+import type { ComponentProps } from "react";
 interface Message {
   id?: string;
   role: "user" | "assistant";
@@ -652,7 +655,39 @@ export function Chat({ initialChatId }: ChatProps) {
                       : "mr-auto bg-muted"
                   } max-w-[80%] ${i === 0 ? "mt-4" : ""}`}
                 >
-                  {message.content}
+                  <div className="prose dark:prose-invert max-w-none break-words">
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        pre: ({ children, ...props }: ComponentProps<"pre">) => (
+                          <div className="relative group">
+                            <pre {...props} className="overflow-x-auto p-4 rounded bg-secondary text-secondary-foreground">
+                              {children}
+                            </pre>
+                          </div>
+                        ),
+                        code: ({ children, className, ...props }: ComponentProps<"code">) => {
+                          const isInline = !className;
+                          return (
+                            <code 
+                              {...props} 
+                              className={isInline 
+                                ? "px-1 py-0.5 rounded bg-secondary text-secondary-foreground text-sm" 
+                                : className
+                              }
+                            >
+                              {children}
+                            </code>
+                          );
+                        },
+                        p: ({ children }: ComponentProps<"p">) => (
+                          <p className="mb-4 last:mb-0">{children}</p>
+                        )
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
                 </Card>
               ))
             )}

@@ -61,9 +61,13 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
     "react-icon-cloud": "^4.1.7",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.1.7",
     "react-spring": "^9.7.5",
     "react-tweet": "^3.2.2",
+    "rehype-highlight": "^7.0.2",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
@@ -71,6 +75,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20.17.24",
     "@types/react": "^18.3.19",
     "@types/react-dom": "^18.3.5",
