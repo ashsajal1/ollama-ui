@@ -108,7 +108,64 @@ export function Chat({ initialChatId }: ChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string>("llama2");
+  const [selectedModel, setSelectedModel] = useState<string>("");
+
+  // Combined effect to handle model loading and selection
+  useEffect(() => {
+    let mounted = true;
+
+    const initializeModel = async () => {
+      try {
+        // First try to get the saved model from localStorage
+        const savedModel = localStorage.getItem("selectedModel");
+        
+        // Fetch available models
+        const modelList = await getModels();
+        if (!mounted) return;
+        
+        setModels(modelList);
+
+        // Set the selected model in this order:
+        // 1. Use saved model if it exists and is available in the model list
+        // 2. Otherwise use the first available model
+        // 3. Fallback to "llama2" if no models available
+        if (savedModel && modelList.some(m => m.name === savedModel)) {
+          setSelectedModel(savedModel);
+        } else if (modelList.length > 0) {
+          const defaultModel = modelList[0].name;
+          setSelectedModel(defaultModel);
+          localStorage.setItem("selectedModel", defaultModel);
+        } else {
+          setSelectedModel("llama2");
+        }
+      } catch (error) {
+        console.error("Error loading models:", error);
+        if (mounted) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load available models. Please make sure Ollama is running.",
+          });
+          // Set llama2 as fallback
+          setSelectedModel("llama2");
+        }
+      }
+    };
+
+    initializeModel();
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
+  // Save model to localStorage when it changes
+  useEffect(() => {
+    if (selectedModel) {
+      localStorage.setItem("selectedModel", selectedModel);
+    }
+  }, [selectedModel]);
+
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -169,9 +226,6 @@ export function Chat({ initialChatId }: ChatProps) {
         const modelList = await getModels();
         if (mounted) {
           setModels(modelList);
-          if (modelList.length > 0) {
-            setSelectedModel(modelList[0].name);
-          }
         }
       } catch (error) {
         if (mounted) {
