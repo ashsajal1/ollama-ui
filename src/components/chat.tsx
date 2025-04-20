@@ -199,11 +199,11 @@ export function Chat({ initialChatId }: ChatProps) {
   }, [selectedModel]);
 
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<ChatType[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [editingChat, setEditingChat] = useState<Chat | null>(null);
+  const [editingChat, setEditingChat] = useState<ChatType | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [deletingChat, setDeletingChat] = useState<Chat | null>(null);
+  const [deletingChat, setDeletingChat] = useState<ChatType | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [chatName, setChatName] = useState("");
 
@@ -281,7 +281,7 @@ export function Chat({ initialChatId }: ChatProps) {
           setChats(chatList);
           // If initialChatId is provided, load that chat
           if (initialChatId) {
-            const chat = chatList.find((c: Chat) => c.id === initialChatId);
+            const chat = chatList.find((c: ChatType) => c.id === initialChatId);
             if (chat) {
               setMessages(chat.messages);
               setCurrentChatId(initialChatId);
@@ -492,7 +492,7 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
-  const handleEditChat = async (chat: Chat) => {
+  const handleEditChat = async (chat: ChatType) => {
     if (!editingName.trim()) return;
     try {
       const response = await fetch(`/api/chat/${chat.id}`, {
@@ -519,7 +519,7 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
-  const handleDeleteChat = async (chat: Chat) => {
+  const handleDeleteChat = async (chat: ChatType) => {
     try {
       const response = await fetch(`/api/chat/${chat.id}`, {
         method: "DELETE",
