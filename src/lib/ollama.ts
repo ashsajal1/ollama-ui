@@ -29,7 +29,10 @@ export async function getModels(): Promise<Model[]> {
   return data.models;
 }
 
-export async function chatWithOllama(messages: ChatRequest["messages"], model: string = "llama2") {
+export async function chatWithOllama(
+  messages: ChatRequest["messages"],
+  model: string = "llama2"
+) {
   const response = await fetch("http://localhost:11434/api/chat", {
     method: "POST",
     headers: {
@@ -50,10 +53,11 @@ export async function chatWithOllama(messages: ChatRequest["messages"], model: s
   return data as ChatResponse;
 }
 
-export async function* streamChat(messages: ChatRequest["messages"], model: string = "llama2") {
-  const abortController = new AbortController();
-  const signal = abortController.signal;
-
+export async function* streamChat(
+  messages: ChatRequest["messages"],
+  model: string = "llama2",
+  signal?: AbortSignal
+) {
   try {
     const response = await fetch("http://localhost:11434/api/chat", {
       method: "POST",
@@ -85,7 +89,7 @@ export async function* streamChat(messages: ChatRequest["messages"], model: stri
 
       const chunk = decoder.decode(value);
       const lines = chunk.split("\n").filter(Boolean);
-      
+
       for (const line of lines) {
         if (line) {
           try {
@@ -97,8 +101,8 @@ export async function* streamChat(messages: ChatRequest["messages"], model: stri
       }
     }
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.log('Request was aborted');
+    if (error instanceof Error && error.name === "AbortError") {
+      console.log("Request was aborted");
       return;
     }
     throw error;

@@ -441,7 +441,8 @@ export function Chat({ initialChatId }: ChatProps) {
       // Stream the response
       for await (const chunk of streamChat(
         [...messages, userMessage],
-        selectedModel
+        selectedModel,
+        abortControllerRef.current.signal
       )) {
         if (currentMessageRef.current) {
           currentMessageRef.current.content += chunk.message.content;
@@ -465,7 +466,7 @@ export function Chat({ initialChatId }: ChatProps) {
       }
     } catch (error) {
       console.error("Error:", error);
-      if (error instanceof Error && error.name !== 'AbortError') {
+      if (error instanceof Error && error.name !== "AbortError") {
         toast({
           variant: "destructive",
           title: "Error",
@@ -823,7 +824,11 @@ export function Chat({ initialChatId }: ChatProps) {
               }}
             />
             {isGenerating ? (
-              <Button type="button" variant="destructive" onClick={stopGeneration}>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={stopGeneration}
+              >
                 <Square className="h-4 w-4" />
               </Button>
             ) : (
