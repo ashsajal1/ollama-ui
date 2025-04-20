@@ -525,7 +525,10 @@ export function Chat({ initialChatId }: ChatProps) {
                           onClick={() => loadChat(chat.id)}
                         >
                           {chat.id === currentChatId
-                            ? chatName
+                            ? chatName.length > 0
+                              ? chatName.slice(0, 20) + "..."
+                              : chat.name.slice(0, 20) +
+                                (chat.name.length > 20 ? "..." : "")
                             : chat.name.slice(0, 20) +
                               (chat.name.length > 20 ? "..." : "")}
                         </Button>
