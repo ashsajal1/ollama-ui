@@ -3,11 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Button } from "../ui/button";
-import {
-  ChevronRight,
-} from "lucide-react";
-import { getModels, streamChat } from "@/lib/ollama";
+import { ChevronRight } from "lucide-react";
+import { streamChat } from "@/lib/ollama";
 import { useToast } from "../ui/use-toast";
+import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -21,12 +20,17 @@ import { DeleteChatDialog } from "./delete-chat-dialog";
 import { Sidebar } from "./sidebar";
 import { PreGeneratedPrompts } from "./pre-generated-prompts";
 import { ChatInput } from "./chat-input";
-
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Chat as ChatTypeMain } from "@prisma/client";
 import { Message as MessageType, ChatProps } from "@/types/chat";
 import { Model } from "@/types/model";
+import { 
+  createNewChat, 
+  saveMessages, 
+  updateChatName, 
+  deleteChat as deleteChatUtil, 
+  loadChats 
+} from "@/lib/utils/chat";
+import { initializeModel, saveSelectedModel } from "@/lib/utils/model";
 
 interface ChatType extends ChatTypeMain {
   messages: MessageType[];
@@ -41,73 +45,6 @@ export function Chat({ initialChatId }: ChatProps) {
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  const stopGeneration = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-      setIsGenerating(false);
-    }
-  };
-
-  // Combined effect to handle model loading and selection
-  useEffect(() => {
-    let mounted = true;
-
-    const initializeModel = async () => {
-      try {
-        // First try to get the saved model from localStorage
-        const savedModel = localStorage.getItem("selectedModel");
-
-        // Fetch available models
-        const modelList = await getModels();
-        if (!mounted) return;
-
-        setModels(modelList);
-
-        // Set the selected model in this order:
-        // 1. Use saved model if it exists and is available in the model list
-        // 2. Otherwise use the first available model
-        // 3. Fallback to "llama2" if no models available
-        if (savedModel && modelList.some((m) => m.name === savedModel)) {
-          setSelectedModel(savedModel);
-        } else if (modelList.length > 0) {
-          const defaultModel = modelList[0].name;
-          setSelectedModel(defaultModel);
-          localStorage.setItem("selectedModel", defaultModel);
-        } else {
-          setSelectedModel("llama2");
-        }
-      } catch (error) {
-        console.error("Error loading models:", error);
-        if (mounted) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description:
-              "Failed to load available models. Please make sure Ollama is running.",
-          });
-          // Set llama2 as fallback
-          setSelectedModel("llama2");
-        }
-      }
-    };
-
-    initializeModel();
-
-    return () => {
-      mounted = false;
-    };
-  }, [toast]);
-
-  // Save model to localStorage when it changes
-  useEffect(() => {
-    if (selectedModel) {
-      localStorage.setItem("selectedModel", selectedModel);
-    }
-  }, [selectedModel]);
-
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chats, setChats] = useState<ChatType[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -118,14 +55,21 @@ export function Chat({ initialChatId }: ChatProps) {
   const [chatName, setChatName] = useState("");
 
   const router = useRouter();
-
+  const abortControllerRef = useRef<AbortController | null>(null);
   const responseInProgress = useRef(false);
   const currentMessageRef = useRef<MessageType | null>(null);
+
+  const stopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsGenerating(false);
+    }
+  };
 
   // Function to handle scroll events
   const handleScroll = () => {
     if (!scrollAreaRef.current) return;
-
     const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
     const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
     setShouldAutoScroll(isAtBottom);
@@ -160,15 +104,17 @@ export function Chat({ initialChatId }: ChatProps) {
     };
   }, [messages, shouldAutoScroll]);
 
+  // Combined effect to handle model loading and selection
   useEffect(() => {
     let mounted = true;
 
-    const loadModels = async () => {
+    const initialize = async () => {
       try {
-        const modelList = await getModels();
-        if (mounted) {
-          setModels(modelList);
-        }
+        const { models: modelList, selectedModel: initialModel } = await initializeModel();
+        if (!mounted) return;
+
+        setModels(modelList);
+        setSelectedModel(initialModel);
       } catch (error) {
         if (mounted) {
           console.error("Error loading models:", error);
@@ -178,35 +124,50 @@ export function Chat({ initialChatId }: ChatProps) {
             description:
               "Failed to load available models. Please make sure Ollama is running.",
           });
+          setSelectedModel("llama2");
         }
       }
     };
 
-    const loadChats = async () => {
+    initialize();
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
+  // Save model to localStorage when it changes
+  useEffect(() => {
+    if (selectedModel) {
+      saveSelectedModel(selectedModel);
+    }
+  }, [selectedModel]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const initialize = async () => {
       try {
-        const response = await fetch("/api/chat");
-        if (!response.ok) throw new Error("Failed to fetch chats");
-        const chatList = await response.json();
-        if (mounted) {
-          setChats(chatList);
-          // If initialChatId is provided, load that chat
-          if (initialChatId) {
-            const chat = chatList.find((c: ChatType) => c.id === initialChatId);
-            if (chat) {
-              setMessages(chat.messages);
-              setCurrentChatId(initialChatId);
-            } else {
-              toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Chat not found.",
-              });
-            }
+        const chatList = await loadChats();
+        if (!mounted) return;
+
+        setChats(chatList);
+        // If initialChatId is provided, load that chat
+        if (initialChatId) {
+          const chat = chatList.find((c: ChatType) => c.id === initialChatId);
+          if (chat) {
+            setMessages(chat.messages);
+            setCurrentChatId(initialChatId);
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Chat not found.",
+            });
           }
         }
       } catch (error) {
         if (mounted) {
-          console.error("Error loading chats:", error);
           toast({
             variant: "destructive",
             title: "Error",
@@ -216,78 +177,12 @@ export function Chat({ initialChatId }: ChatProps) {
       }
     };
 
-    loadModels();
-    loadChats();
+    initialize();
 
     return () => {
       mounted = false;
     };
   }, [toast, initialChatId]);
-
-  const createNewChat = async (name: string) => {
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.slice(0, 30) + "...",
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to create chat");
-
-      const chat = await response.json();
-      return chat.id;
-    } catch (error) {
-      console.error("Error creating chat:", error);
-      throw error;
-    }
-  };
-
-  const saveMessages = async (chatId: string, newMessages: MessageType[]) => {
-    try {
-      // If this is the first message, use it as the chat name
-      if (messages.length === 0) {
-        const resp = await fetch(`/api/chat/${chatId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: newMessages[0].content,
-          }),
-        });
-
-        if (resp.ok) {
-          const chat = await resp.json();
-          setCurrentChatId(chat.id);
-          setChatName(newMessages[0].content);
-        } else {
-          console.log("Issue with creating chat");
-        }
-      }
-
-      const response = await fetch(`/api/chat/${chatId}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: newMessages,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to save messages");
-
-      const chat: ChatType = await response.json();
-      return chat;
-    } catch (error) {
-      console.error("Error saving messages:", error);
-      throw error;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -336,10 +231,13 @@ export function Chat({ initialChatId }: ChatProps) {
 
       // Save messages to the database after streaming is complete
       if (currentChatId && currentMessageRef.current) {
-        await saveMessages(currentChatId, [
+        const updatedChat = await saveMessages(currentChatId, messages, [
           userMessage,
           currentMessageRef.current,
         ]);
+        if (messages.length === 0) {
+          setChatName(userMessage.content);
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -361,16 +259,13 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
-  // Add function to handle new chat
   const handleNewChat = async () => {
     setMessages([]);
     setCurrentChatId(null);
     setInput("");
 
     const id = await createNewChat("New chat");
-    // Fetch the new chat
     if (id) {
-      // route to /chatId
       router.push(`/${id}`);
     } else {
       toast({
@@ -381,7 +276,6 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
-  // Add function to load chat history
   const loadChat = async (chatId: string) => {
     try {
       setIsLoading(true);
@@ -405,22 +299,11 @@ export function Chat({ initialChatId }: ChatProps) {
   const handleEditChat = async (chat: ChatType) => {
     if (!editingName.trim()) return;
     try {
-      const response = await fetch(`/api/chat/${chat.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: editingName }),
-      });
-
-      if (!response.ok) throw new Error("Failed to update chat");
-
-      const updatedChat = await response.json();
+      const updatedChat = await updateChatName(chat.id, editingName);
       setChats(chats.map((c) => (c.id === chat.id ? updatedChat : c)));
       setEditingChat(null);
       setEditingName("");
     } catch (error) {
-      console.error("Error updating chat:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -431,12 +314,7 @@ export function Chat({ initialChatId }: ChatProps) {
 
   const handleDeleteChat = async (chat: ChatType) => {
     try {
-      const response = await fetch(`/api/chat/${chat.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Failed to delete chat");
-
+      await deleteChatUtil(chat.id);
       setChats(chats.filter((c) => c.id !== chat.id));
       if (currentChatId === chat.id) {
         setMessages([]);
@@ -445,7 +323,6 @@ export function Chat({ initialChatId }: ChatProps) {
       }
       setDeletingChat(null);
     } catch (error) {
-      console.error("Error deleting chat:", error);
       toast({
         variant: "destructive",
         title: "Error",
