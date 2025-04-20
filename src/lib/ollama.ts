@@ -51,39 +51,56 @@ export async function chatWithOllama(messages: ChatRequest["messages"], model: s
 }
 
 export async function* streamChat(messages: ChatRequest["messages"], model: string = "llama2") {
-  const response = await fetch("http://localhost:11434/api/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      stream: true,
-    }),
-  });
+  const abortController = new AbortController();
+  const signal = abortController.signal;
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
+  try {
+    const response = await fetch("http://localhost:11434/api/chat", {
+      method: "POST",
+      signal,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        stream: true,
+      }),
+    });
 
-  const reader = response.body?.getReader();
-  const decoder = new TextDecoder();
-
-  if (!reader) {
-    throw new Error("No reader available");
-  }
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split("\n").filter(Boolean);
-    
-    for (const line of lines) {
-      const response = JSON.parse(line) as ChatResponse;
-      yield response;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error("No reader available");
+    }
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split("\n").filter(Boolean);
+      
+      for (const line of lines) {
+        if (line) {
+          try {
+            yield JSON.parse(line) as ChatResponse;
+          } catch (e) {
+            console.error("Error parsing JSON:", e);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log('Request was aborted');
+      return;
+    }
+    throw error;
   }
 }

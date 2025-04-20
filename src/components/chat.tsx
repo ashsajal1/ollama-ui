@@ -18,6 +18,7 @@ import {
   Grid2X2,
   Copy,
   Check,
+  Square,
 } from "lucide-react";
 import { chatWithOllama, getModels, streamChat } from "@/lib/ollama";
 import { useToast } from "./ui/use-toast";
@@ -127,6 +128,16 @@ export function Chat({ initialChatId }: ChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const stopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsGenerating(false);
+    }
+  };
 
   const [copyStates, setCopyStates] = useState<{
     [key: string]: CopyButtonState;
@@ -409,6 +420,7 @@ export function Chat({ initialChatId }: ChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setIsGenerating(true);
     responseInProgress.current = true;
 
     try {
@@ -422,6 +434,9 @@ export function Chat({ initialChatId }: ChatProps) {
       const assistantMessage: Message = { role: "assistant", content: "" };
       currentMessageRef.current = assistantMessage;
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Create new AbortController
+      abortControllerRef.current = new AbortController();
 
       // Stream the response
       for await (const chunk of streamChat(
@@ -450,17 +465,21 @@ export function Chat({ initialChatId }: ChatProps) {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to get response from Ollama. Please try again.",
-      });
-      // Remove the empty assistant message if there was an error
-      setMessages((prev) => prev.slice(0, -1));
+      if (error instanceof Error && error.name !== 'AbortError') {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to get response from Ollama. Please try again.",
+        });
+        // Remove the empty assistant message if there was an error
+        setMessages((prev) => prev.slice(0, -1));
+      }
     } finally {
       setIsLoading(false);
+      setIsGenerating(false);
       responseInProgress.current = false;
       currentMessageRef.current = null;
+      abortControllerRef.current = null;
     }
   };
 
@@ -803,9 +822,15 @@ export function Chat({ initialChatId }: ChatProps) {
                 }
               }}
             />
-            <Button type="submit" disabled={isLoading}>
-              <SendHorizontal className="h-4 w-4" />
-            </Button>
+            {isGenerating ? (
+              <Button type="button" variant="destructive" onClick={stopGeneration}>
+                <Square className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button type="submit" disabled={isLoading}>
+                <SendHorizontal className="h-4 w-4" />
+              </Button>
+            )}
           </form>
         </div>
       </div>
