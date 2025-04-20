@@ -7,10 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import {
   SendHorizontal,
-  ChevronLeft,
   ChevronRight,
-  Pencil,
-  Trash2,
   Square,
 } from "lucide-react";
 import { getModels, streamChat } from "@/lib/ollama";
@@ -25,6 +22,7 @@ import {
 import { Message } from "./chat/message";
 import { EditChatDialog } from "./chat/edit-chat-dialog";
 import { DeleteChatDialog } from "./chat/delete-chat-dialog";
+import { Sidebar } from "./chat/sidebar";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -511,89 +509,29 @@ export function Chat({ initialChatId }: ChatProps) {
         </div>
       )}
 
-      {/* Chat list sidebar with header */}
+      {/* Sidebar */}
       <div
         className={`${
           isSidebarOpen ? "w-72" : "w-0"
         } transition-all duration-300 border-r flex flex-col bg-background overflow-hidden h-screen sticky top-0`}
       >
-        {isSidebarOpen && (
-          <>
-            <div className="p-4 border-b flex items-center justify-between">
-              <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {models.map((model) => (
-                    <SelectItem key={model.name} value={model.name}>
-                      {model.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSidebarOpen(false)}
-              >
-                <ChevronLeft />
-              </Button>
-            </div>
-            <div className="flex flex-col h-full overflow-hidden">
-              <div className="p-4">
-                <Button onClick={handleNewChat} className="w-full">
-                  New Chat
-                </Button>
-              </div>
-              <ScrollArea className="flex-1 px-4">
-                <div className="space-y-2 pr-2">
-                  {chats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className="group flex justify-between cursor-pointer items-center gap-2"
-                    >
-                      <Link className="w-full" href={`/${chat.id}`}>
-                        <Button
-                          variant={
-                            currentChatId === chat.id ? "secondary" : "ghost"
-                          }
-                          className="flex-1 justify-start truncate h-9 px-3 w-full"
-                          onClick={() => loadChat(chat.id)}
-                        >
-                          {chat.id === currentChatId && chatName
-                            ? chatName
-                            : chat.name}
-                        </Button>
-                      </Link>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => {
-                            setEditingChat(chat);
-                            setEditingName(chat.name);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive"
-                          onClick={() => setDeletingChat(chat)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </>
-        )}
+        <Sidebar
+          isSidebarOpen={isSidebarOpen}
+          selectedModel={selectedModel}
+          models={models}
+          chats={chats}
+          currentChatId={currentChatId}
+          chatName={chatName}
+          onSidebarClose={() => setIsSidebarOpen(false)}
+          onModelChange={setSelectedModel}
+          onNewChat={handleNewChat}
+          onChatLoad={loadChat}
+          onEditChat={(chat) => {
+            setEditingChat(chat);
+            setEditingName(chat.name);
+          }}
+          onDeleteChat={setDeletingChat}
+        />
       </div>
 
       {/* Main chat area */}
@@ -668,7 +606,6 @@ export function Chat({ initialChatId }: ChatProps) {
         </div>
       </div>
 
-      {/* Replace old dialogs with new components */}
       <EditChatDialog
         chat={editingChat}
         open={editingChat !== null}
