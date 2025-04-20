@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
 export async function PATCH(
@@ -16,24 +16,14 @@ export async function PATCH(
   }
 
   try {
-    const updatedChat = await prisma.chat.update({
-      where: {
-        id: chatId,
-      },
-      data: {
-        name: name.trim(),
-        updatedAt: new Date(),
-      },
-      include: {
-        messages: true,
-      },
-    });
-
-    return NextResponse.json(updatedChat);
-  } catch (error: any) {
-    if (error?.code === "P2025") {
+    const updatedChat = await storage.updateChat(chatId, name.trim());
+    
+    if (!updatedChat) {
       return NextResponse.json({ error: "Chat not found" }, { status: 404 });
     }
+
+    return NextResponse.json(updatedChat);
+  } catch (error) {
     console.error("Failed to update chat:", error);
     return NextResponse.json(
       { error: "Failed to update chat" },
@@ -49,25 +39,9 @@ export async function DELETE(
   const { chatId } = params;
 
   try {
-    // Delete associated messages first
-    await prisma.message.deleteMany({
-      where: {
-        chatId: chatId,
-      },
-    });
-
-    // Delete the chat
-    await prisma.chat.delete({
-      where: {
-        id: chatId,
-      },
-    });
-
+    await storage.deleteChat(chatId);
     return NextResponse.json({ message: "Chat deleted successfully" });
-  } catch (error: any) {
-    if (error?.code === "P2025") {
-      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
-    }
+  } catch (error) {
     console.error("Failed to delete chat:", error);
     return NextResponse.json(
       { error: "Failed to delete chat" },

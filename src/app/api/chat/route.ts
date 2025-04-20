@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -6,12 +6,7 @@ export async function POST(req: Request) {
   const { name, message } = body;
 
   try {
-    const chat = await prisma.chat.create({
-      data: {
-        name,
-      },
-    });
-
+    const chat = await storage.createChat(name);
     return NextResponse.json(chat);
   } catch (error) {
     return NextResponse.json(
@@ -23,15 +18,7 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const chats = await prisma.chat.findMany({
-      include: {
-        messages: true,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-    });
-
+    const chats = await storage.getAllChats();
     return NextResponse.json(chats);
   } catch (error) {
     return NextResponse.json(

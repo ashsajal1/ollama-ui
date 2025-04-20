@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { storage } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -9,20 +9,11 @@ export async function POST(
   const { messages } = await req.json();
 
   try {
-    const updatedChat = await prisma.chat.update({
-      where: { id: chatId },
-      data: {
-        messages: {
-          create: messages.map((msg: any) => ({
-            content: msg.content,
-            role: msg.role,
-          })),
-        },
-      },
-      include: {
-        messages: true,
-      },
-    });
+    const updatedChat = await storage.addMessages(chatId, messages);
+    
+    if (!updatedChat) {
+      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+    }
 
     return NextResponse.json(updatedChat);
   } catch (error) {
