@@ -7,8 +7,8 @@ import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import {
   SendHorizontal,
   ChevronLeft,
@@ -128,32 +128,34 @@ export function Chat({ initialChatId }: ChatProps) {
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
 
-  const [copyStates, setCopyStates] = useState<{ [key: string]: CopyButtonState }>({});
+  const [copyStates, setCopyStates] = useState<{
+    [key: string]: CopyButtonState;
+  }>({});
 
   const copyToClipboard = async (text: string, blockId: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopyStates(prev => ({
+      setCopyStates((prev) => ({
         ...prev,
         [blockId]: {
           copied: true,
           timeoutId: setTimeout(() => {
-            setCopyStates(current => ({
+            setCopyStates((current) => ({
               ...current,
-              [blockId]: { copied: false }
+              [blockId]: { copied: false },
             }));
-          }, 2000)
-        }
+          }, 2000),
+        },
       }));
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   };
 
   // Cleanup timeouts when unmounting
   useEffect(() => {
     return () => {
-      Object.values(copyStates).forEach(state => {
+      Object.values(copyStates).forEach((state) => {
         if (state.timeoutId) {
           clearTimeout(state.timeoutId);
         }
@@ -169,18 +171,18 @@ export function Chat({ initialChatId }: ChatProps) {
       try {
         // First try to get the saved model from localStorage
         const savedModel = localStorage.getItem("selectedModel");
-        
+
         // Fetch available models
         const modelList = await getModels();
         if (!mounted) return;
-        
+
         setModels(modelList);
 
         // Set the selected model in this order:
         // 1. Use saved model if it exists and is available in the model list
         // 2. Otherwise use the first available model
         // 3. Fallback to "llama2" if no models available
-        if (savedModel && modelList.some(m => m.name === savedModel)) {
+        if (savedModel && modelList.some((m) => m.name === savedModel)) {
           setSelectedModel(savedModel);
         } else if (modelList.length > 0) {
           const defaultModel = modelList[0].name;
@@ -195,7 +197,8 @@ export function Chat({ initialChatId }: ChatProps) {
           toast({
             variant: "destructive",
             title: "Error",
-            description: "Failed to load available models. Please make sure Ollama is running.",
+            description:
+              "Failed to load available models. Please make sure Ollama is running.",
           });
           // Set llama2 as fallback
           setSelectedModel("llama2");
@@ -377,7 +380,7 @@ export function Chat({ initialChatId }: ChatProps) {
           console.log("Issue with creating chat");
         }
       }
-      
+
       const response = await fetch(`/api/chat/${chatId}/messages`, {
         method: "POST",
         headers: {
@@ -631,7 +634,9 @@ export function Chat({ initialChatId }: ChatProps) {
                           className="flex-1 justify-start truncate h-9 px-3 w-full"
                           onClick={() => loadChat(chat.id)}
                         >
-                          {chat.id === currentChatId && chatName ? chatName : chat.name}
+                          {chat.id === currentChatId && chatName
+                            ? chatName
+                            : chat.name}
                         </Button>
                       </Link>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -699,22 +704,24 @@ export function Chat({ initialChatId }: ChatProps) {
                   key={i}
                   className={`p-4 ${
                     message.role === "user"
-                      ? "ml-auto bg-primary text-primary-foreground"
+                      ? "ml-auto bg-muted"
                       : "mr-auto bg-muted"
                   } max-w-[80%] ${i === 0 ? "mt-4" : "mb-4"}`}
                 >
                   <div className="prose dark:prose-invert max-w-none break-words">
-                    <ReactMarkdown 
+                    <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
                         pre: ({ children }) => <>{children}</>,
                         code: ({ className, children }: CodeBlockProps) => {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const language = match ? match[1] : '';
-                          const isInline = !className?.includes('language-');
-                          const blockId = Math.random().toString(36).substring(7);
-                          const content = String(children).replace(/\n$/, '');
-                          
+                          const match = /language-(\w+)/.exec(className || "");
+                          const language = match ? match[1] : "";
+                          const isInline = !className?.includes("language-");
+                          const blockId = Math.random()
+                            .toString(36)
+                            .substring(7);
+                          const content = String(children).replace(/\n$/, "");
+
                           if (!isInline && language) {
                             return (
                               <div className="relative group">
@@ -727,7 +734,9 @@ export function Chat({ initialChatId }: ChatProps) {
                                       size="icon"
                                       variant="ghost"
                                       className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() => copyToClipboard(content, blockId)}
+                                      onClick={() =>
+                                        copyToClipboard(content, blockId)
+                                      }
                                     >
                                       {copyStates[blockId]?.copied ? (
                                         <Check className="h-4 w-4" />
@@ -741,11 +750,11 @@ export function Chat({ initialChatId }: ChatProps) {
                                   style={oneDark}
                                   language={language}
                                   PreTag="div"
-                                  showLineNumbers={content.includes('\n')}
+                                  showLineNumbers={content.includes("\n")}
                                   customStyle={{
                                     margin: 0,
-                                    padding: '1rem',
-                                    borderRadius: '0.375rem',
+                                    padding: "1rem",
+                                    borderRadius: "0.375rem",
                                   }}
                                 >
                                   {content}
@@ -753,12 +762,14 @@ export function Chat({ initialChatId }: ChatProps) {
                               </div>
                             );
                           }
-                          
+
                           return (
                             <code
-                              className={isInline 
-                                ? "px-1 py-0.5 rounded bg-secondary text-secondary-foreground text-sm" 
-                                : "block p-4 rounded bg-secondary text-secondary-foreground overflow-x-auto"}
+                              className={
+                                isInline
+                                  ? "px-1 py-0.5 rounded bg-secondary text-secondary-foreground text-sm"
+                                  : "block p-4 rounded bg-secondary text-secondary-foreground overflow-x-auto"
+                              }
                             >
                               {children}
                             </code>
@@ -766,7 +777,7 @@ export function Chat({ initialChatId }: ChatProps) {
                         },
                         p: ({ children }) => (
                           <p className="mb-4 last:mb-0">{children}</p>
-                        )
+                        ),
                       }}
                     >
                       {message.content}
