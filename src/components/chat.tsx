@@ -666,7 +666,7 @@ export function Chat({ initialChatId }: ChatProps) {
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-h-0 relative bg-background">
-        <ScrollArea className="flex-1 px-4 pb-20" ref={scrollAreaRef}>
+        <ScrollArea className="flex-1 px-4 pb-20 mb-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center mt-8 space-y-6">
@@ -701,7 +701,7 @@ export function Chat({ initialChatId }: ChatProps) {
                     message.role === "user"
                       ? "ml-auto bg-primary text-primary-foreground"
                       : "mr-auto bg-muted"
-                  } max-w-[80%] ${i === 0 ? "mt-4" : ""}`}
+                  } max-w-[80%] ${i === 0 ? "mt-4" : "mb-4"}`}
                 >
                   <div className="prose dark:prose-invert max-w-none break-words">
                     <ReactMarkdown 
