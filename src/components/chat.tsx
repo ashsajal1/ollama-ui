@@ -55,11 +55,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Chat as ChatType } from "@prisma/client";
+import { Chat as ChatTypeMain } from "@prisma/client";
 import { CodeBlockProps, CopyButtonState } from "@/types/code";
 import { Message, ChatProps, PreGeneratedPrompt } from "@/types/chat";
 import { Model } from "@/types/model";
 
+interface ChatType extends ChatTypeMain {
+  messages: Message[];
+}
 const preGeneratedPrompts: PreGeneratedPrompt[] = [
   {
     title: "Code Explanation",
