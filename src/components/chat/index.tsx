@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ScrollArea } from "./ui/scroll-area";
-import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
+import { ScrollArea } from "../ui/scroll-area";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 import {
   SendHorizontal,
   ChevronRight,
   Square,
 } from "lucide-react";
 import { getModels, streamChat } from "@/lib/ollama";
-import { useToast } from "./ui/use-toast";
+import { useToast } from "../ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -18,11 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Message } from "./chat/message";
-import { EditChatDialog } from "./chat/edit-chat-dialog";
-import { DeleteChatDialog } from "./chat/delete-chat-dialog";
-import { Sidebar } from "./chat/sidebar";
-import { PreGeneratedPrompts } from "./chat/pre-generated-prompts";
+import { Message } from "./message";
+import { EditChatDialog } from "./edit-chat-dialog";
+import { DeleteChatDialog } from "./delete-chat-dialog";
+import { Sidebar } from "./sidebar";
+import { PreGeneratedPrompts } from "./pre-generated-prompts";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
