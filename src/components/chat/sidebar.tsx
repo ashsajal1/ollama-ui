@@ -64,11 +64,7 @@ export function Sidebar({
             ))}
           </SelectContent>
         </Select>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onSidebarClose}
-        >
+        <Button variant="ghost" size="icon" onClick={onSidebarClose}>
           <ChevronLeft />
         </Button>
       </div>
@@ -78,7 +74,7 @@ export function Sidebar({
             New Chat
           </Button>
         </div>
-        <ScrollArea className="flex-1 px-4">
+        <ScrollArea className="flex-1 px-4 relative">
           <div className="space-y-2 pr-2">
             {chats.map((chat) => (
               <div
@@ -96,7 +92,7 @@ export function Sidebar({
                       : chat.name}
                   </Button>
                 </Link>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4">
                   <Button
                     variant="ghost"
                     size="icon"
