@@ -84,6 +84,7 @@ export function ChatInput({
           ) : (
             <Button
               type="submit"
+              size={'icon'}
               className="absolute bottom-2 right-2"
               disabled={isLoading}
             >
