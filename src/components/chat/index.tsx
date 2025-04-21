@@ -189,7 +189,10 @@ export function Chat({ initialChatId }: ChatProps) {
     e.preventDefault();
     if (!input.trim() || isLoading || responseInProgress.current) return;
 
-    const userMessage: MessageType = { role: "user", content: fullMessage.trim() };
+    const userMessage: MessageType = {
+      role: "user",
+      content: fullMessage.trim(),
+    };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -302,10 +305,10 @@ export function Chat({ initialChatId }: ChatProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleEditChat = async (chat: ChatType) => {
-    if (!editingName.trim()) return;
+  const handleEditChat = async (chat: ChatType, newName: string) => {
+    if (!newName.trim()) return;
     try {
-      const updatedChat = await updateChatName(chat.id, editingName);
+      const updatedChat = await updateChatName(chat.id, newName);
       setChats(chats.map((c) => (c.id === chat.id ? updatedChat : c)));
       setEditingChat(null);
       setEditingName("");
