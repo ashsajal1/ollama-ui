@@ -25,6 +25,8 @@ export function ChatInput({
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [character, setCharacter] = useState("teacher");
+  const [hasPrependedCharacter, setHasPrependedCharacter] = useState(false);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onImageUpload) {
@@ -40,27 +42,41 @@ export function ChatInput({
       <div className="mb-2">
         <SelectCharacter
           onSelect={(character) => {
-            // Handle the selected character
-            console.log(character); // will be "teacher", "engineer", etc.
+            console.log(character);
             setCharacter(character);
+            setHasPrependedCharacter(false); // reset for new character
           }}
         />
       </div>
 
-      <form onSubmit={onSubmit}>
+      <form
+        onSubmit={(e) => {
+          onSubmit(e);
+          setHasPrependedCharacter(false); // reset after submit
+        }}
+      >
         <div className="relative">
           <Textarea
             value={input}
-            onChange={(e) => onInputChange(character + "\n\n" + e.target.value)}
+            onChange={(e) => {
+              let value = e.target.value;
+              if (!hasPrependedCharacter) {
+                value = character + "\n\n" + value;
+                setHasPrependedCharacter(true);
+              }
+              onInputChange(value);
+            }}
             placeholder="Type your message..."
             className="min-h-[80px] max-h-[200px] pr-10 pl-10"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 onSubmit(e);
+                setHasPrependedCharacter(false);
               }
             }}
           />
+
           {/* Hidden file input */}
           <input
             type="file"
