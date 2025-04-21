@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 export async function POST(req: Request) {
   try {
@@ -11,26 +12,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // Generate unique filename
+    // Create a unique temporary filename
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
     const extension = image.name.split(".").pop();
     const filename = `image-${uniqueSuffix}.${extension}`;
-    const filepath = path.join(uploadDir, filename);
+    const tmpDir = os.tmpdir();
+    const filepath = path.join(tmpDir, filename);
 
-    // Convert file to buffer and save
+    // Convert file to buffer and save to temp directory
     const bytes = await image.arrayBuffer();
     const buffer = Buffer.from(bytes);
     fs.writeFileSync(filepath, buffer);
 
-    // Return the URL for the uploaded image
-    const imageUrl = `/uploads/${filename}`;
-    return NextResponse.json({ url: imageUrl });
+    // Return the filepath (not URL) for temporary access
+    return NextResponse.json({ filepath });
 
   } catch (error) {
     console.error("Error uploading image:", error);

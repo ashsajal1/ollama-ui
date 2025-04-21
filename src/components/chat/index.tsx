@@ -345,13 +345,16 @@ export function Chat({ initialChatId }: ChatProps) {
         throw new Error('Failed to upload image');
       }
 
-      const { url } = await response.json();
+      const { filepath } = await response.json();
+
+      // Convert filepath to URL for temporary access
+      const tempUrl = `/api/image/${encodeURIComponent(filepath)}`;
 
       const imageMessage: MessageType = {
         role: "user",
         content: "Sent an image",
         contentType: "image",
-        imageUrl: url,
+        imageUrl: tempUrl,
       };
 
       setMessages(prev => [...prev, imageMessage]);
