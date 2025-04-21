@@ -21,32 +21,32 @@ const characters = [
   {
     value: "teacher",
     label: "Teacher",
-    description: "A knowledgeable and patient educator who explains concepts clearly"
+    description: "You are a knowledgeable and patient educator who explains concepts clearly"
   },
   {
     value: "engineer",
     label: "Software Engineer",
-    description: "A technical expert who can help with coding and software architecture"
+    description: "You are a technical expert who can help with coding and software architecture"
   },
   {
     value: "scientist",
     label: "Scientist",
-    description: "A researcher who approaches problems with scientific methodology"
+    description: "You are a researcher who approaches problems with scientific methodology"
   },
   {
     value: "writer",
     label: "Writer",
-    description: "A creative writer who can help with content and storytelling"
+    description: "You are a creative writer who can help with content and storytelling"
   },
   {
     value: "businessAnalyst",
     label: "Business Analyst",
-    description: "A professional who understands business processes and requirements"
+    description: "You are a professional who understands business processes and requirements"
   },
   {
     value: "designer",
     label: "UI/UX Designer",
-    description: "A creative professional focused on user experience and interface design"
+    description: "You are a creative professional focused on user experience and interface design"
   },
 ]
 
