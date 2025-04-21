@@ -1,7 +1,7 @@
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { SendHorizontal, Square, ImageIcon } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { SelectCharacter } from "./select-character";
 
 interface ChatInputProps {
@@ -24,7 +24,7 @@ export function ChatInput({
   onImageUpload,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const [character, setCharacter] = useState("teacher");
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onImageUpload) {
@@ -42,6 +42,7 @@ export function ChatInput({
           onSelect={(character) => {
             // Handle the selected character
             console.log(character); // will be "teacher", "engineer", etc.
+            setCharacter(character);
           }}
         />
       </div>
@@ -50,7 +51,7 @@ export function ChatInput({
         <div className="relative">
           <Textarea
             value={input}
-            onChange={(e) => onInputChange(e.target.value)}
+            onChange={(e) => onInputChange(character + "\n\n" + e.target.value)}
             placeholder="Type your message..."
             className="min-h-[80px] max-h-[200px] pr-10 pl-10"
             onKeyDown={(e) => {
