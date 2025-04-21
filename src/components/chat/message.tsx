@@ -51,9 +51,9 @@ export function Message({ message, isFirstMessage }: MessageProps) {
   }, [copyStates]);
 
   return (
-    <Card
+    <div
       className={`p-4 ${
-        message.role === "user" ? "ml-auto bg-muted" : "mr-auto bg-muted"
+        message.role === "user" ? "ml-auto bg-muted rounded" : "mr-auto"
       } max-w-[80%] ${isFirstMessage ? "mt-4" : "mb-4"}`}
     >
       <div className="prose dark:prose-invert max-w-none break-words">
@@ -137,6 +137,6 @@ export function Message({ message, isFirstMessage }: MessageProps) {
           </ReactMarkdown>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
