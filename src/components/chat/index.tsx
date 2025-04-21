@@ -23,12 +23,12 @@ import { ChatInput } from "./chat-input";
 import { Chat as ChatTypeMain } from "@prisma/client";
 import { Message as MessageType, ChatProps } from "@/types/chat";
 import { Model } from "@/types/model";
-import { 
-  createNewChat, 
-  saveMessages, 
-  updateChatName, 
-  deleteChat as deleteChatUtil, 
-  loadChats 
+import {
+  createNewChat,
+  saveMessages,
+  updateChatName,
+  deleteChat as deleteChatUtil,
+  loadChats,
 } from "@/lib/utils/chat";
 import { initializeModel, saveSelectedModel } from "@/lib/utils/model";
 
@@ -110,7 +110,8 @@ export function Chat({ initialChatId }: ChatProps) {
 
     const initialize = async () => {
       try {
-        const { models: modelList, selectedModel: initialModel } = await initializeModel();
+        const { models: modelList, selectedModel: initialModel } =
+          await initializeModel();
         if (!mounted) return;
 
         setModels(modelList);
@@ -296,6 +297,11 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
+  const bottomRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const handleEditChat = async (chat: ChatType) => {
     if (!editingName.trim()) return;
     try {
@@ -334,15 +340,15 @@ export function Chat({ initialChatId }: ChatProps) {
   const handleImageUpload = async (file: File) => {
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append("image", file);
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
+      const response = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload image');
+        throw new Error("Failed to upload image");
       }
 
       const { filepath } = await response.json();
@@ -357,7 +363,7 @@ export function Chat({ initialChatId }: ChatProps) {
         imageUrl: tempUrl,
       };
 
-      setMessages(prev => [...prev, imageMessage]);
+      setMessages((prev) => [...prev, imageMessage]);
 
       // Save the message if we're in a chat
       if (currentChatId) {
@@ -369,7 +375,7 @@ export function Chat({ initialChatId }: ChatProps) {
         await saveMessages(chatId, [], [imageMessage]);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error("Error uploading image:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -445,14 +451,12 @@ export function Chat({ initialChatId }: ChatProps) {
               />
             ) : (
               messages.map((message, i) => (
-                <Message
-                  key={i}
-                  message={message}
-                  isFirstMessage={i === 0}
-                />
+                <Message key={i} message={message} isFirstMessage={i === 0} />
               ))
             )}
           </div>
+
+          <div ref={bottomRef} />
         </ScrollArea>
 
         <ChatInput
