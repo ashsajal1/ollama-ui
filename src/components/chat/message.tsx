@@ -53,7 +53,7 @@ export function Message({ message, isFirstMessage }: MessageProps) {
   return (
     <div
       className={`p-4 ${
-        message.role === "user" ? "ml-auto bg-muted rounded" : "mr-auto"
+        message.role === "user" ? "ml-auto bg-muted rounded-xl" : "mr-auto"
       } max-w-[80%] ${isFirstMessage ? "mt-4" : "mb-4"}`}
     >
       <div className="prose dark:prose-invert max-w-none break-words">
