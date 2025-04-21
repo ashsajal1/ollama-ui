@@ -331,6 +331,50 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const { url } = await response.json();
+
+      const imageMessage: MessageType = {
+        role: "user",
+        content: "Sent an image",
+        contentType: "image",
+        imageUrl: url,
+      };
+
+      setMessages(prev => [...prev, imageMessage]);
+
+      // Save the message if we're in a chat
+      if (currentChatId) {
+        await saveMessages(currentChatId, messages, [imageMessage]);
+      } else {
+        // Create a new chat if this is the first message
+        const chatId = await createNewChat("Image chat");
+        setCurrentChatId(chatId);
+        await saveMessages(chatId, [], [imageMessage]);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to upload image. Please try again.",
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen max-w-full mx-auto">
       {/* Fixed Header when sidebar is collapsed */}
@@ -415,6 +459,7 @@ export function Chat({ initialChatId }: ChatProps) {
           onInputChange={setInput}
           onSubmit={handleSubmit}
           onStopGeneration={stopGeneration}
+          onImageUpload={handleImageUpload}
         />
       </div>
 

@@ -2,6 +2,8 @@ export interface Message {
   id?: string;
   role: "user" | "assistant";
   content: string;
+  contentType?: "text" | "image";
+  imageUrl?: string;
   createdAt?: Date;
 }
 
