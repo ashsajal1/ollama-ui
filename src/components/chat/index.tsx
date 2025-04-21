@@ -185,11 +185,11 @@ export function Chat({ initialChatId }: ChatProps) {
     };
   }, [toast, initialChatId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, fullMessage: string) => {
     e.preventDefault();
     if (!input.trim() || isLoading || responseInProgress.current) return;
 
-    const userMessage: MessageType = { role: "user", content: input.trim() };
+    const userMessage: MessageType = { role: "user", content: fullMessage.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);

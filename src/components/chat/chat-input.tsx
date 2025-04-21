@@ -9,7 +9,7 @@ interface ChatInputProps {
   isLoading: boolean;
   isGenerating: boolean;
   onInputChange: (value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent, fullMessage: string) => void;
   onStopGeneration: () => void;
   onImageUpload?: (file: File) => void;
 }
@@ -25,7 +25,6 @@ export function ChatInput({
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [character, setCharacter] = useState("teacher");
-  const [hasPrependedCharacter, setHasPrependedCharacter] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,42 +36,35 @@ export function ChatInput({
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fullMessage = `${character}\n\n${input}`;
+    onSubmit(e, fullMessage); // send full message with character
+    onInputChange(""); // reset input
+  };
+
   return (
     <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
       <div className="mb-2">
         <SelectCharacter
-          onSelect={(character) => {
-            console.log(character);
-            setCharacter(character);
-            setHasPrependedCharacter(false); // reset for new character
+          onSelect={(selectedCharacter) => {
+            console.log(selectedCharacter);
+            setCharacter(selectedCharacter);
           }}
         />
       </div>
 
-      <form
-        onSubmit={(e) => {
-          onSubmit(e);
-          setHasPrependedCharacter(false); // reset after submit
-        }}
-      >
+      <form onSubmit={handleSubmit}>
         <div className="relative">
           <Textarea
             value={input}
-            onChange={(e) => {
-              let value = e.target.value;
-              if (!hasPrependedCharacter) {
-                value = character + "\n\n" + value;
-                setHasPrependedCharacter(true);
-              }
-              onInputChange(value);
-            }}
+            onChange={(e) => onInputChange(e.target.value)}
             placeholder="Type your message..."
             className="min-h-[80px] max-h-[200px] pr-10 pl-10"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                onSubmit(e);
-                setHasPrependedCharacter(false);
+                handleSubmit(e);
               }
             }}
           />
