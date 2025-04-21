@@ -2,6 +2,7 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { SendHorizontal, Square, ImageIcon } from "lucide-react";
 import { useRef } from "react";
+import { SelectCharacter } from "./select-character";
 
 interface ChatInputProps {
   input: string;
@@ -36,6 +37,15 @@ export function ChatInput({
 
   return (
     <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
+      <div className="mb-2">
+        <SelectCharacter
+          onSelect={(character) => {
+            // Handle the selected character
+            console.log(character); // will be "teacher", "engineer", etc.
+          }}
+        />
+      </div>
+
       <form onSubmit={onSubmit}>
         <div className="relative">
           <Textarea
@@ -84,7 +94,7 @@ export function ChatInput({
           ) : (
             <Button
               type="submit"
-              size={'icon'}
+              size={"icon"}
               className="absolute bottom-2 right-2"
               disabled={isLoading}
             >
