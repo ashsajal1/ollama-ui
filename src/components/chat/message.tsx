@@ -19,14 +19,36 @@ interface MessageProps {
 }
 
 function formatThinkTagsToMarkdown(content: string): string {
-  return content.replace(
-    /<think>([\s\S]*?)<\/think>/g,
-    (_, innerContent) => {
-      const lines = innerContent.trim().split("\n");
-      return lines.map((line: string) => `> ${line.trim()}`).join("\n");
+  const lines = content.split("\n");
+  let insideThink = false;
+  const result: string[] = [];
+
+  for (let line of lines) {
+    if (line.includes("<think>")) {
+      insideThink = true;
+      line = line.replace("<think>", "").trim();
+      if (line) result.push(`> ${line}`);
+      continue;
     }
-  );
+
+    if (line.includes("</think>")) {
+      insideThink = false;
+      line = line.replace("</think>", "").trim();
+      if (line) result.push(line); // content after </think> not quoted
+      continue;
+    }
+
+    if (insideThink) {
+      result.push(`> ${line}`);
+    } else {
+      result.push(line);
+    }
+  }
+
+  return result.join("\n");
 }
+
+
 
 export function Message({ message, isFirstMessage }: MessageProps) {
   const [copyStates, setCopyStates] = useState<{
