@@ -24,7 +24,7 @@ export function ChatInput({
   onImageUpload,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [character, setCharacter] = useState("teacher");
+  const [character, setCharacter] = useState("");
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
