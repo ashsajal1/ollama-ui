@@ -18,6 +18,16 @@ interface MessageProps {
   isFirstMessage?: boolean;
 }
 
+function formatThinkTagsToMarkdown(content: string): string {
+  return content.replace(
+    /<think>([\s\S]*?)<\/think>/g,
+    (_, innerContent) => {
+      const lines = innerContent.trim().split("\n");
+      return lines.map((line: string) => `> ${line.trim()}`).join("\n");
+    }
+  );
+}
+
 export function Message({ message, isFirstMessage }: MessageProps) {
   const [copyStates, setCopyStates] = useState<{
     [key: string]: CopyButtonState;
@@ -137,7 +147,7 @@ export function Message({ message, isFirstMessage }: MessageProps) {
               p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
             }}
           >
-            {message.content}
+             {formatThinkTagsToMarkdown(message.content)}
           </ReactMarkdown>
         )}
       </div>
