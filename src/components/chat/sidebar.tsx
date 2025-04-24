@@ -81,17 +81,15 @@ export function Sidebar({
                 key={chat.id}
                 className="group flex justify-between cursor-pointer items-center gap-2"
               >
-                <Link className="w-full" href={`/${chat.id}`}>
-                  <Button
-                    variant={currentChatId === chat.id ? "secondary" : "ghost"}
-                    className="flex-1 justify-start truncate h-9 px-3 w-full"
-                    onClick={() => onChatLoad(chat.id)}
-                  >
-                    {chat.id === currentChatId && chatName
-                      ? chatName
-                      : chat.name}
-                  </Button>
-                </Link>
+                <Button
+                  variant={currentChatId === chat.id ? "secondary" : "ghost"}
+                  className="flex-1 justify-start truncate h-9 px-3 w-full"
+                  onClick={() => onChatLoad(chat.id)}
+                >
+                  {chat.id === currentChatId && chatName
+                    ? chatName
+                    : chat.name}
+                </Button>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4">
                   <Button
                     variant="ghost"
