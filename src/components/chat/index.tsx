@@ -200,10 +200,15 @@ export function Chat({ initialChatId }: ChatProps) {
     responseInProgress.current = true;
 
     try {
-      // Create a new chat if this is the first message
+      // Create a new chat and navigate if no chat ID exists
       if (!currentChatId) {
         const chatId = await createNewChat(userMessage.content);
-        setCurrentChatId(chatId);
+        if (chatId) {
+          router.push(`/${chatId}`);
+          setCurrentChatId(chatId);
+        } else {
+          throw new Error("Failed to create chat");
+        }
       }
 
       // Initialize an empty assistant message
