@@ -206,6 +206,8 @@ export function Chat({ initialChatId }: ChatProps) {
         if (chatId) {
           router.push(`/${chatId}`);
           setCurrentChatId(chatId);
+          setMessages((prev) => [...prev, userMessage]);
+          await saveMessages(chatId, [], [userMessage]);
         } else {
           throw new Error("Failed to create chat");
         }
