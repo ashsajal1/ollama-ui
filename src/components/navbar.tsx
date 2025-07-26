@@ -8,7 +8,7 @@ export default async function Navbar() {
   return (
     <nav className="p-4 z-10 fixed backdrop-blur-2xl top-0 w-full h-[80px] border-b flex items-center justify-between">
       <Link className="font-bold cursor-pointer" href="/">
-        Logo
+        Ollama ui
       </Link>
 
       <div className="flex items-center gap-2">
