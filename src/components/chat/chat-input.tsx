@@ -67,6 +67,27 @@ export function ChatInput({
                 handleSubmit(e);
               }
             }}
+            onPaste={async (e) => {
+              const items = e.clipboardData.items;
+              for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.kind === "file" && item.type.startsWith("image/")) {
+                  const file = item.getAsFile();
+                  if (file && onImageUpload) await onImageUpload(file);
+                }
+              }
+            }}
+            onDrop={async (e) => {
+              e.preventDefault();
+              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                  const file = e.dataTransfer.files[i];
+                  if (file.type.startsWith("image/") && onImageUpload) {
+                    await onImageUpload(file);
+                  }
+                }
+              }
+            }}
           />
 
           {/* Hidden file input */}
