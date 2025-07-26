@@ -13,12 +13,6 @@ export default async function Navbar() {
 
       <div className="flex items-center gap-2">
         <ModeToggle />
-
-        <Link href="/notification">
-          <Button size={"icon"} variant={"outline"}>
-            <Bell className="w-4 h-4" />
-          </Button>
-        </Link>
       </div>
     </nav>
   );
