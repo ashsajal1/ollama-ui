@@ -8,7 +8,6 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { Copy, Check } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card } from "../ui/card";
 import { CodeBlockProps, CopyButtonState } from "@/types/code";
 import { Message as MessageType } from "@/types/chat";
 import Image from "next/image";

@@ -1,4 +1,4 @@
-import HeroSection from "@/components/hero-section";
+
 import { Chat } from "@/components/chat";
 
 export default function Home() {

@@ -1,8 +1,5 @@
-import React from "react";
-import { Button } from "./ui/button";
 import { ModeToggle } from "./mode-toggle";
 import Link from "next/link";
-import { Bell } from "lucide-react";
 
 export default async function Navbar() {
   return (

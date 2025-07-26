@@ -1,6 +1,6 @@
 // /home/sajal/Desktop/ollama-ui/src/app/loading.tsx
 import { Skeleton } from "@/components/ui/skeleton";
-import React from "react";
+
 
 export default function Loading() {
   return (

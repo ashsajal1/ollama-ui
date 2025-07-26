@@ -1,6 +1,6 @@
 "use client"
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import React from 'react'
+
 
 export default function Error() {
   return (
