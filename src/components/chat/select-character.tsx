@@ -17,7 +17,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const characters = [
+interface Character {
+  value: string;
+  label: string;
+  description: string;
+}
+
+const defaultCharacters: Character[] = [
   {
     value: "teacher",
     label: "Teacher",
@@ -63,6 +69,23 @@ interface SelectCharacterProps {
 export function SelectCharacter({ onSelect }: SelectCharacterProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
+  const [allCharacters, setAllCharacters] = React.useState<Character[]>(defaultCharacters);
+
+  React.useEffect(() => {
+    const storedCharacters = localStorage.getItem("custom_characters");
+    if (storedCharacters) {
+      try {
+        const customChars = JSON.parse(storedCharacters).map((char: any) => ({
+          value: char.name.toLowerCase().replace(/\s/g, "-"), // Create a slug-like value
+          label: char.name,
+          description: char.prompt,
+        }));
+        setAllCharacters([...defaultCharacters, ...customChars]);
+      } catch (error) {
+        console.error("Failed to parse custom characters from localStorage", error);
+      }
+    }
+  }, []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -74,7 +97,7 @@ export function SelectCharacter({ onSelect }: SelectCharacterProps) {
           className="w-full justify-between"
         >
           {value
-            ? characters.find((character) => character.value === value)?.label
+            ? allCharacters.find((character) => character.value === value)?.label
             : "Select character..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -84,15 +107,14 @@ export function SelectCharacter({ onSelect }: SelectCharacterProps) {
           <CommandInput placeholder="Search character..." />
           <CommandEmpty>No character found.</CommandEmpty>
           <CommandGroup>
-            {characters.map((character) => (
+            {allCharacters.map((character) => (
               <CommandItem
                 key={character.value}
                 value={character.value}
                 onSelect={(currentValue) => {
                   setValue(currentValue);
-                  // set prompt here
                   onSelect(
-                    characters.find((c) => c.value === currentValue)
+                    allCharacters.find((c) => c.value === currentValue)
                       ?.description || ""
                   );
                   setOpen(false);
