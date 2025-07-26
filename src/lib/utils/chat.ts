@@ -19,11 +19,14 @@ export async function saveMessages(
   try {
     const newChatName =
       messages.length === 0 ? newMessages[0].content : undefined;
-    const chat: ChatType = await storage.addMessages(
+    const chat = await storage.addMessages(
       chatId,
       newMessages,
       newChatName
     );
+    if (!chat) {
+      throw new Error("Failed to add messages: chat not found.");
+    }
     return chat;
   } catch (error) {
     console.error("Error saving messages:", error);
