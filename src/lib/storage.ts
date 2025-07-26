@@ -1,5 +1,3 @@
-import prisma from './prisma';
-
 export interface Chat {
   id: string;
   name: string;
@@ -96,141 +94,29 @@ class LocalStorageAdapter {
   }
 }
 
-class PrismaAdapter {
-  async createChat(name: string): Promise<Chat> {
-    return prisma.chat.create({
-      data: { name },
-      include: { messages: true }
-    });
-  }
-
-  async getAllChats(): Promise<Chat[]> {
-    return prisma.chat.findMany({
-      include: { messages: true },
-      orderBy: { updatedAt: 'desc' }
-    });
-  }
-
-  async updateChat(chatId: string, name: string): Promise<Chat | null> {
-    return prisma.chat.update({
-      where: { id: chatId },
-      data: { name, updatedAt: new Date() },
-      include: { messages: true }
-    });
-  }
-
-  async deleteChat(chatId: string): Promise<void> {
-    await prisma.message.deleteMany({ where: { chatId } });
-    await prisma.chat.delete({ where: { id: chatId } });
-  }
-
-  async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[], newChatName?: string): Promise<Chat | null> {
-    const data: any = {
-      messages: {
-        create: messages.map(msg => ({
-          content: msg.content,
-          role: msg.role
-        }))
-      },
-      updatedAt: new Date()
-    };
-
-    if (newChatName) {
-      data.name = newChatName;
-    }
-
-    return prisma.chat.update({
-      where: { id: chatId },
-      data,
-      include: { messages: true }
-    });
-  }
-}
-
-class ApiAdapter {
-    async createChat(name: string): Promise<Chat> {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        body: JSON.stringify({ name }),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('Failed to create chat');
-      return response.json();
-    }
-  
-    async getAllChats(): Promise<Chat[]> {
-      const response = await fetch('/api/chat');
-      if (!response.ok) throw new Error('Failed to get chats');
-      const chats = await response.json();
-      return chats.map((chat: any) => ({
-          ...chat,
-          createdAt: new Date(chat.createdAt),
-          updatedAt: new Date(chat.updatedAt)
-        }));
-    }
-  
-    async updateChat(chatId: string, name: string): Promise<Chat | null> {
-      const response = await fetch(`/api/chat/${chatId}`, {
-          method: 'PUT',
-          body: JSON.stringify({ name }),
-          headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) return null;
-      return response.json();
-    }
-  
-    async deleteChat(chatId: string): Promise<void> {
-      await fetch(`/api/chat/${chatId}`, { method: 'DELETE' });
-    }
-  
-    async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[], newChatName?: string): Promise<Chat | null> {
-      const response = await fetch(`/api/chat/${chatId}/messages`, {
-          method: 'POST',
-          body: JSON.stringify({ messages, newChatName }),
-          headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) return null;
-      return response.json();
-    }
-  }
-
 const isClient = typeof window !== 'undefined';
 
 function getStorageInstance() {
-    const useDB = !!process.env.DATABASE_URL;
-
     if (isClient) {
-        const preference = localStorage.getItem('storage_adapter');
-        if (preference === 'local' || !useDB) {
-            return new LocalStorageAdapter();
-        }
-        return new ApiAdapter();
+        return new LocalStorageAdapter();
     }
     
-    if (useDB) {
-        return new PrismaAdapter();
-    }
-    // Fallback for server-side execution without a database
-    throw new Error('Database URL is not configured, but a database operation was attempted.');
+    // Return a mock/dummy adapter for server-side rendering (SSR)
+    return {
+        createChat: async (name: string): Promise<Chat> => { 
+            throw new Error('Cannot create chat on the server.'); 
+        },
+        getAllChats: async (): Promise<Chat[]> => [],
+        updateChat: async (chatId: string, name: string): Promise<Chat | null> => { 
+            throw new Error('Cannot update chat on the server.'); 
+        },
+        deleteChat: async (chatId: string): Promise<void> => { 
+            throw new Error('Cannot delete chat on the server.'); 
+        },
+        addMessages: async (chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[], newChatName?: string): Promise<Chat | null> => { 
+            throw new Error('Cannot add messages on the server.'); 
+        },
+    };
 }
 
 export const storage = getStorageInstance();
-
-export function getStorageType() {
-    const useDB = !!process.env.DATABASE_URL;
-    if (!isClient) {
-        return useDB ? 'db' : 'local';
-    }
-    const preference = localStorage.getItem('storage_adapter');
-    if (preference) {
-        return preference as 'local' | 'db';
-    }
-    return useDB ? 'db' : 'local';
-}
-
-export function setStorageType(type: 'local' | 'db') {
-    if (isClient) {
-        localStorage.setItem('storage_adapter', type);
-        window.location.reload();
-    }
-}
