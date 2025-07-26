@@ -197,37 +197,35 @@ class ApiAdapter {
 const isClient = typeof window !== 'undefined';
 
 function getStorageInstance() {
-    const defaultToLocal = process.env.NEXT_PUBLIC_STORAGE === 'local' || !process.env.DATABASE_URL;
+    const useDB = !!process.env.DATABASE_URL;
 
     if (isClient) {
         const preference = localStorage.getItem('storage_adapter');
-        if (preference === 'local') {
-            return new LocalStorageAdapter();
-        }
-        if (preference === 'db') {
-            return new ApiAdapter();
-        }
-        if (defaultToLocal) {
+        if (preference === 'local' || !useDB) {
             return new LocalStorageAdapter();
         }
         return new ApiAdapter();
     }
-    return new PrismaAdapter();
+    
+    if (useDB) {
+        return new PrismaAdapter();
+    }
+    // Fallback for server-side execution without a database
+    throw new Error('Database URL is not configured, but a database operation was attempted.');
 }
 
 export const storage = getStorageInstance();
 
 export function getStorageType() {
+    const useDB = !!process.env.DATABASE_URL;
     if (!isClient) {
-        const defaultToLocal = process.env.NEXT_PUBLIC_STORAGE === 'local' || !process.env.DATABASE_URL;
-        return defaultToLocal ? 'local' : 'db';
+        return useDB ? 'db' : 'local';
     }
     const preference = localStorage.getItem('storage_adapter');
     if (preference) {
         return preference as 'local' | 'db';
     }
-    const defaultToLocal = process.env.NEXT_PUBLIC_STORAGE === 'local' || !process.env.DATABASE_URL;
-    return defaultToLocal ? 'local' : 'db';
+    return useDB ? 'db' : 'local';
 }
 
 export function setStorageType(type: 'local' | 'db') {
