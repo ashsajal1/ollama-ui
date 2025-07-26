@@ -16,6 +16,8 @@ import { Model } from "@/types/model";
 import { groupChatsByDate } from "@/lib/utils/date";
 import { GearIcon } from "@radix-ui/react-icons";
 import { ModeToggle } from "../mode-toggle";
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -46,6 +48,11 @@ export function Sidebar({
   onEditChat,
   onDeleteChat,
 }: SidebarProps) {
+  const router = useRouter();
+  const handleChatClick = useCallback((chatId: string) => {
+    router.push(`/${chatId}`);
+  }, [router]);
+
   if (!isSidebarOpen) return null;
 
   return (
@@ -92,7 +99,7 @@ export function Sidebar({
                             currentChatId === chat.id ? "secondary" : "ghost"
                           }
                           className="flex-1 justify-start truncate h-9 px-3 w-full"
-                          onClick={() => onChatLoad(chat.id)}
+                          onClick={() => handleChatClick(chat.id)}
                         >
                           {chat.id === currentChatId && chatName
                             ? chatName
