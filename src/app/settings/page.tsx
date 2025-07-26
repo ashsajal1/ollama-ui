@@ -6,17 +6,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
-import Navbar from "@/components/navbar";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface CustomCharacter {
   name: string;
   prompt: string;
 }
 
+const characterSchema = z.object({
+  name: z.string().min(1, "Character name is required"),
+  prompt: z.string().min(1, "Prompt is required"),
+});
+
+type CharacterFormValues = z.infer<typeof characterSchema>;
+
 export default function Settings() {
   const [characters, setCharacters] = useState<CustomCharacter[]>([]);
-  const [newName, setNewName] = useState("");
-  const [newPrompt, setNewPrompt] = useState("");
+
+  const form = useForm<CharacterFormValues>({
+    resolver: zodResolver(characterSchema),
+    defaultValues: {
+      name: "",
+      prompt: "",
+    },
+  });
 
   useEffect(() => {
     const storedCharacters = localStorage.getItem("custom_characters");
@@ -25,18 +48,15 @@ export default function Settings() {
     }
   }, []);
 
-  const handleAddCharacter = () => {
-    if (newName.trim() && newPrompt.trim()) {
-      const newCharacter = { name: newName, prompt: newPrompt };
-      const updatedCharacters = [...characters, newCharacter];
-      setCharacters(updatedCharacters);
-      localStorage.setItem(
-        "custom_characters",
-        JSON.stringify(updatedCharacters)
-      );
-      setNewName("");
-      setNewPrompt("");
-    }
+  const onSubmit = (values: CharacterFormValues) => {
+    const newCharacter = { name: values.name, prompt: values.prompt };
+    const updatedCharacters = [...characters, newCharacter];
+    setCharacters(updatedCharacters);
+    localStorage.setItem(
+      "custom_characters",
+      JSON.stringify(updatedCharacters)
+    );
+    form.reset();
   };
 
   const handleDeleteCharacter = (index: number) => {
@@ -57,27 +77,45 @@ export default function Settings() {
             <CardTitle>Add Custom Character</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="char-name">Character Name</Label>
-                <Input
-                  id="char-name"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="e.g., Sarcastic Assistant"
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="char-name">Character Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="char-name"
+                          placeholder="e.g., Sarcastic Assistant"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="char-prompt">Prompt</Label>
-                <Input
-                  id="char-prompt"
-                  value={newPrompt}
-                  onChange={(e) => setNewPrompt(e.target.value)}
-                  placeholder="e.g., You are a witty and sarcastic assistant..."
+                <FormField
+                  control={form.control}
+                  name="prompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="char-prompt">Prompt</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="char-prompt"
+                          placeholder="e.g., You are a witty and sarcastic assistant..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <Button onClick={handleAddCharacter}>Add Character</Button>
-            </div>
+                <Button type="submit">Add Character</Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
 
