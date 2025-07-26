@@ -208,67 +208,87 @@ export function Chat({ initialChatId }: ChatProps) {
 
   const handleSubmit = async (e: React.FormEvent, fullMessage: string) => {
     e.preventDefault();
-    if (!input.trim() || isLoading || responseInProgress.current) return;
+    const trimmedMessage = fullMessage.trim();
+    if (!trimmedMessage || isLoading || responseInProgress.current) return;
 
     const userMessage: MessageType = {
       role: "user",
-      content: fullMessage.trim(),
+      content: trimmedMessage,
     };
-    setMessages((prev) => [...prev, userMessage]);
+
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
     setIsGenerating(true);
     responseInProgress.current = true;
 
+    let chatId = currentChatId;
+
     try {
-      // Create a new chat and navigate if no chat ID exists
-      if (!currentChatId) {
-        const chatId = await createNewChat(userMessage.content);
-        if (chatId) {
-          router.push(`/${chatId}`);
-          setCurrentChatId(chatId);
-          setMessages((prev) => [...prev, userMessage]);
-          await saveMessages(chatId, [], [userMessage]);
+      if (!chatId) {
+        const newChatId = await createNewChat(userMessage.content);
+        if (newChatId) {
+          router.push(`/${newChatId}`);
+          setCurrentChatId(newChatId);
+          chatId = newChatId;
         } else {
           throw new Error("Failed to create chat");
         }
       }
 
-      // Initialize an empty assistant message
-      const assistantMessage: MessageType = { role: "assistant", content: "" };
-      currentMessageRef.current = assistantMessage;
-      setMessages((prev) => [...prev, assistantMessage]);
+      const assistantPlaceholder: MessageType = { role: "assistant", content: "" };
+      setMessages((prev) => [...prev, assistantPlaceholder]);
 
-      // Create new AbortController
-      abortControllerRef.current = new AbortController();
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
-      // Stream the response
-      for await (const chunk of streamChat(
-        [...messages, userMessage],
+      const stream = streamChat(
+        newMessages,
         selectedModel,
-        abortControllerRef.current.signal
-      )) {
-        if (currentMessageRef.current) {
-          currentMessageRef.current.content += chunk.message.content;
+        abortController.signal
+      );
+
+      let finalAssistantContent = "";
+      for await (const chunk of stream) {
+        if (chunk.message.content) {
+          finalAssistantContent += chunk.message.content;
           setMessages((prev) => {
-            const newMessages = [...prev];
-            const lastMessage = newMessages[newMessages.length - 1];
-            if (lastMessage.role === "assistant") {
-              lastMessage.content = currentMessageRef.current?.content || "";
+            const updatedMessages = [...prev];
+            const lastMessage = updatedMessages[updatedMessages.length - 1];
+            if (lastMessage && lastMessage.role === "assistant") {
+              lastMessage.content = finalAssistantContent;
             }
-            return newMessages;
+            return updatedMessages;
           });
         }
       }
 
-      // Save messages to the database after streaming is complete
-      if (currentChatId && currentMessageRef.current) {
-        const updatedChat = await saveMessages(currentChatId, messages, [
-          userMessage,
-          currentMessageRef.current,
-        ]);
-        if (messages.length === 0) {
-          setChatName(userMessage.content);
+      const assistantMessage: MessageType = {
+        role: "assistant",
+        content: finalAssistantContent,
+      };
+
+      if (chatId) {
+        await saveMessages(chatId, messages, [userMessage, assistantMessage]);
+        const updatedChats = await loadChats();
+        setChats(
+          updatedChats.map((chat) => ({
+            ...chat,
+            messages: chat.messages.map((msg) => ({
+              ...msg,
+              role: msg.role === "user" ? "user" : "assistant",
+            })),
+          }))
+        );
+        const currentChat = updatedChats.find((c) => c.id === chatId);
+        if (currentChat) {
+          setMessages(
+            currentChat.messages.map((msg) => ({
+              ...msg,
+              role: msg.role === "user" ? "user" : "assistant",
+            }))
+          );
         }
       }
     } catch (error) {
@@ -279,14 +299,12 @@ export function Chat({ initialChatId }: ChatProps) {
           title: "Error",
           description: "Failed to get response from Ollama. Please try again.",
         });
-        // Remove the empty assistant message if there was an error
-        setMessages((prev) => prev.slice(0, -1));
+        setMessages(messages);
       }
     } finally {
       setIsLoading(false);
       setIsGenerating(false);
       responseInProgress.current = false;
-      currentMessageRef.current = null;
       abortControllerRef.current = null;
     }
   };
