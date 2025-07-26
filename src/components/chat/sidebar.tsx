@@ -14,6 +14,8 @@ import { Chat } from "@prisma/client";
 import { Message } from "@/types/chat";
 import { Model } from "@/types/model";
 import { groupChatsByDate } from "@/lib/utils/date";
+import { GearIcon } from "@radix-ui/react-icons";
+import { ModeToggle } from "../mode-toggle";
 
 interface ChatType extends Chat {
   messages: Message[];
@@ -69,7 +71,7 @@ export function Sidebar({
           <ChevronLeft />
         </Button>
       </div>
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col h-full overflow-hidden relative">
         <div className="p-4">
           <Button onClick={onNewChat} className="w-full">
             New Chat
@@ -125,6 +127,21 @@ export function Sidebar({
             )}
           </div>
         </ScrollArea>
+        {/* Settings and mode toggle buttons fixed at the bottom */}
+        <div className="absolute bottom-0 left-0 w-full p-4 bg-background border-t flex justify-between items-center gap-2">
+          <ModeToggle />
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="w-10 h-10"
+            title="Settings"
+          >
+            <Link href="/settings">
+              <GearIcon className="h-6 w-6" />
+            </Link>
+          </Button>
+        </div>
       </div>
     </>
   );
