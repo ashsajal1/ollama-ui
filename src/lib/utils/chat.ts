@@ -1,5 +1,5 @@
 import { storage } from "@/lib/storage";
-import { Message, Chat as ChatType } from "@/types/chat";
+import { Message } from "@/types/chat";
 
 export async function createNewChat(name: string) {
   try {

@@ -1,6 +1,6 @@
-import { Chat } from "@prisma/client";
+import { ChatType } from "@/types/chat";
 
-export function getChatDateCategory(chat: Chat): string {
+export function getChatDateCategory(chat: ChatType): string {
   const now = new Date();
   const chatDate = new Date(chat.updatedAt);
 
@@ -43,8 +43,8 @@ export function getChatDateCategory(chat: Chat): string {
   return "Older";
 }
 
-export function groupChatsByDate(chats: Chat[]): Record<string, Chat[]> {
-  const groupedChats: Record<string, Chat[]> = {
+export function groupChatsByDate(chats: ChatType[]): Record<string, ChatType[]> {
+  const groupedChats: Record<string, ChatType[]> = {
     Today: [],
     Yesterday: [],
     "Last 7 Days": [],
