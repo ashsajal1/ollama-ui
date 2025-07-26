@@ -25,11 +25,12 @@ class LocalStorageAdapter {
     const chatsJson = localStorage.getItem(this.CHATS_KEY);
     if (!chatsJson) return [];
     const chats = JSON.parse(chatsJson);
-    return chats.map((chat: any) => ({
+    const parsedChats = chats.map((chat: any) => ({
       ...chat,
       createdAt: new Date(chat.createdAt),
-      updatedAt: new Date(chat.updatedAt)
+      updatedAt: new Date(chat.updatedAt),
     }));
+    return parsedChats.sort((a: Chat, b: Chat) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
   async createChat(name: string): Promise<Chat> {
