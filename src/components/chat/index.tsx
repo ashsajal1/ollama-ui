@@ -152,12 +152,33 @@ export function Chat({ initialChatId }: ChatProps) {
         const chatList = await loadChats();
         if (!mounted) return;
 
-        setChats(chatList);
+        setChats(
+          chatList.map((chat) => ({
+            ...chat,
+            messages: chat.messages.map((msg) => ({
+              ...msg,
+              role: msg.role === "user" ? "user" : "assistant",
+            })),
+          }))
+        );
         // If initialChatId is provided, load that chat
         if (initialChatId) {
-          const chat = chatList.find((c: ChatType) => c.id === initialChatId);
+          const chat = chatList
+            .map((c) => ({
+              ...c,
+              messages: c.messages.map((msg) => ({
+                ...msg,
+                role: msg.role === "user" ? "user" : "assistant",
+              })),
+            }))
+            .find((c) => c.id === initialChatId);
           if (chat) {
-            setMessages(chat.messages);
+            setMessages(
+              chat.messages.map((msg) => ({
+                ...msg,
+                role: msg.role === "user" ? "user" : "assistant",
+              }))
+            );
             setCurrentChatId(initialChatId);
           } else {
             toast({
@@ -292,7 +313,12 @@ export function Chat({ initialChatId }: ChatProps) {
       setIsLoading(true);
       const chat = chats.find((c) => c.id === chatId);
       if (chat) {
-        setMessages(chat.messages);
+        setMessages(
+          chat.messages.map((msg) => ({
+            ...msg,
+            role: msg.role === "user" ? "user" : "assistant",
+          }))
+        );
         setCurrentChatId(chatId);
       }
     } catch (error) {
@@ -316,7 +342,9 @@ export function Chat({ initialChatId }: ChatProps) {
     if (!newName.trim()) return;
     try {
       const updatedChat = await updateChatName(chat.id, newName);
-      setChats(chats.map((c) => (c.id === chat.id ? updatedChat : c)));
+      setChats(
+        chats.map((c) => (c.id === chat.id ? updatedChat : c)).filter((c): c is ChatType => c !== null && c !== undefined)
+      );
       setEditingChat(null);
       setEditingName("");
     } catch (error) {
