@@ -8,12 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Chat } from "@prisma/client";
-import { Message } from "@/types/chat";
 
-interface ChatType extends Chat {
-  messages: Message[];
-}
+import { Message, ChatType } from "@/types/chat";
 
 interface DeleteChatDialogProps {
   chat: ChatType | null;

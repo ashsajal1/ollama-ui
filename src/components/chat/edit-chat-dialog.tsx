@@ -8,12 +8,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Chat } from "@prisma/client";
-import { Message } from "@/types/chat";
 
-interface ChatType extends Chat {
-  messages: Message[];
-}
+import { Message, ChatType } from "@/types/chat";
 
 interface EditChatDialogProps {
   chat: ChatType | null;

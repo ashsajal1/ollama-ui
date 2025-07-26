@@ -20,8 +20,8 @@ import { DeleteChatDialog } from "./delete-chat-dialog";
 import { Sidebar } from "./sidebar";
 import { PreGeneratedPrompts } from "./pre-generated-prompts";
 import { ChatInput } from "./chat-input";
-import { Chat as ChatTypeMain } from "@prisma/client";
-import { Message as MessageType, ChatProps } from "@/types/chat";
+
+import { Message as MessageType, ChatProps, ChatType, LocalChatType } from "@/types/chat";
 import { Model } from "@/types/model";
 import {
   createNewChat,
@@ -32,9 +32,7 @@ import {
 } from "@/lib/utils/chat";
 import { initializeModel, saveSelectedModel } from "@/lib/utils/model";
 
-interface ChatType extends ChatTypeMain {
-  messages: MessageType[];
-}
+// ...existing code...
 
 export function Chat({ initialChatId }: ChatProps) {
   const { toast } = useToast();
@@ -46,11 +44,11 @@ export function Chat({ initialChatId }: ChatProps) {
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [chats, setChats] = useState<ChatType[]>([]);
+  const [chats, setChats] = useState<LocalChatType[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [editingChat, setEditingChat] = useState<ChatType | null>(null);
+  const [editingChat, setEditingChat] = useState<LocalChatType | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [deletingChat, setDeletingChat] = useState<ChatType | null>(null);
+  const [deletingChat, setDeletingChat] = useState<LocalChatType | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [chatName, setChatName] = useState("");
 
@@ -356,12 +354,12 @@ export function Chat({ initialChatId }: ChatProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleEditChat = async (chat: ChatType, newName: string) => {
+  const handleEditChat = async (chat: LocalChatType, newName: string) => {
     if (!newName.trim()) return;
     try {
       const updatedChat = await updateChatName(chat.id, newName);
       setChats(
-        chats.map((c) => (c.id === chat.id ? updatedChat : c)).filter((c): c is ChatType => c !== null && c !== undefined)
+        chats.map((c) => (c.id === chat.id ? updatedChat : c)).filter((c): c is LocalChatType => c !== null && c !== undefined)
       );
       setEditingChat(null);
       setEditingName("");
@@ -374,7 +372,7 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
-  const handleDeleteChat = async (chat: ChatType) => {
+  const handleDeleteChat = async (chat: LocalChatType) => {
     try {
       await deleteChatUtil(chat.id);
       setChats(chats.filter((c) => c.id !== chat.id));
@@ -485,10 +483,10 @@ export function Chat({ initialChatId }: ChatProps) {
           onNewChat={handleNewChat}
           onChatLoad={loadChat}
           onEditChat={(chat) => {
-            setEditingChat(chat);
-            setEditingName(chat.name);
+            setEditingChat(chat as LocalChatType);
+            setEditingName((chat as LocalChatType).name ?? "");
           }}
-          onDeleteChat={setDeletingChat}
+          onDeleteChat={(chat) => setDeletingChat(chat as LocalChatType)}
         />
       </div>
 

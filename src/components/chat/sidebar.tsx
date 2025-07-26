@@ -10,16 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Link from "next/link";
-import { Chat } from "@prisma/client";
+import { ChatType } from "@/types/chat";
 import { Message } from "@/types/chat";
 import { Model } from "@/types/model";
 import { groupChatsByDate } from "@/lib/utils/date";
 import { GearIcon } from "@radix-ui/react-icons";
 import { ModeToggle } from "../mode-toggle";
-
-interface ChatType extends Chat {
-  messages: Message[];
-}
 
 interface SidebarProps {
   isSidebarOpen: boolean;
