@@ -155,7 +155,7 @@ export function Chat({ initialChatId }: ChatProps) {
         setChats(
           chatList.map((chat) => ({
             ...chat,
-            messages: chat.messages.map((msg) => ({
+            messages: (chat.messages || []).map((msg) => ({
               ...msg,
               role: msg.role === "user" ? "user" : "assistant",
             })),
