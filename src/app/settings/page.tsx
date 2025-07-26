@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2 } from 'lucide-react';
+import Navbar from '@/components/navbar';
 
 interface CustomCharacter {
   name: string;
@@ -43,6 +44,7 @@ export default function Settings() {
 
   return (
     <div className="container mx-auto p-4">
+      <Navbar />
       <h1 className="text-2xl font-bold mb-4">Settings</h1>
       <div className="grid gap-6">
         <Card>
