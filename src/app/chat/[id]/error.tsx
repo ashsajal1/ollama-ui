@@ -16,7 +16,7 @@ export default function Error({
     <div className="flex flex-col items-center justify-center h-screen space-y-4">
       <h2 className="text-2xl font-bold">Chat Not Found</h2>
       <p className="text-muted-foreground">
-        The chat you're looking for doesn't exist or has been deleted.
+        The chat you&apos;re looking for doesn&apos;t exist or has been deleted.
       </p>
       <div className="flex space-x-4">
         <Button onClick={() => router.push('/')}>
