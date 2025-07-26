@@ -6,11 +6,11 @@ export async function POST(
   { params }: { params: { chatId: string } }
 ) {
   const { chatId } = params;
-  const { messages } = await req.json();
+  const { messages, newChatName } = await req.json();
 
   try {
-    const updatedChat = await storage.addMessages(chatId, messages);
-    
+    const updatedChat = await storage.addMessages(chatId, messages, newChatName);
+
     if (!updatedChat) {
       return NextResponse.json({ error: "Chat not found" }, { status: 404 });
     }

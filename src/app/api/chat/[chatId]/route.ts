@@ -1,7 +1,7 @@
 import { storage } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
-export async function PATCH(
+export async function PUT(
   req: Request,
   { params }: { params: { chatId: string } }
 ) {

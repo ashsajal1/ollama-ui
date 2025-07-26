@@ -24,23 +24,7 @@ export async function createNewChat(name: string) {
 
 export async function saveMessages(chatId: string, messages: Message[], newMessages: Message[]) {
   try {
-    // If this is the first message, use it as the chat name
-    if (messages.length === 0) {
-      const resp = await fetch(`/api/chat/${chatId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newMessages[0].content,
-        }),
-      });
-
-      if (!resp.ok) {
-        console.log("Issue with creating chat");
-        throw new Error("Failed to update chat name");
-      }
-    }
+    const newChatName = messages.length === 0 ? newMessages[0].content : undefined;
 
     const response = await fetch(`/api/chat/${chatId}/messages`, {
       method: "POST",
@@ -49,6 +33,7 @@ export async function saveMessages(chatId: string, messages: Message[], newMessa
       },
       body: JSON.stringify({
         messages: newMessages,
+        newChatName,
       }),
     });
 
@@ -65,7 +50,7 @@ export async function saveMessages(chatId: string, messages: Message[], newMessa
 export async function updateChatName(chatId: string, newName: string) {
   try {
     const response = await fetch(`/api/chat/${chatId}`, {
-      method: "PATCH",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },

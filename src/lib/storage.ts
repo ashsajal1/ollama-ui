@@ -72,7 +72,7 @@ class LocalStorageAdapter {
     localStorage.setItem(this.CHATS_KEY, JSON.stringify(filteredChats));
   }
 
-  async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[]): Promise<Chat | null> {
+  async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[], newChatName?: string): Promise<Chat | null> {
     const chats = this.getAllChatsSync();
     const chatIndex = chats.findIndex(chat => chat.id === chatId);
     if (chatIndex === -1) return null;
@@ -86,6 +86,7 @@ class LocalStorageAdapter {
 
     chats[chatIndex] = {
       ...chats[chatIndex],
+      name: newChatName || chats[chatIndex].name,
       messages: [...chats[chatIndex].messages, ...newMessages],
       updatedAt: new Date()
     };
@@ -123,18 +124,24 @@ class PrismaAdapter {
     await prisma.chat.delete({ where: { id: chatId } });
   }
 
-  async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[]): Promise<Chat | null> {
+  async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[], newChatName?: string): Promise<Chat | null> {
+    const data: any = {
+      messages: {
+        create: messages.map(msg => ({
+          content: msg.content,
+          role: msg.role
+        }))
+      },
+      updatedAt: new Date()
+    };
+
+    if (newChatName) {
+      data.name = newChatName;
+    }
+
     return prisma.chat.update({
       where: { id: chatId },
-      data: {
-        messages: {
-          create: messages.map(msg => ({
-            content: msg.content,
-            role: msg.role
-          }))
-        },
-        updatedAt: new Date()
-      },
+      data,
       include: { messages: true }
     });
   }
@@ -176,10 +183,10 @@ class ApiAdapter {
       await fetch(`/api/chat/${chatId}`, { method: 'DELETE' });
     }
   
-    async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[]): Promise<Chat | null> {
+    async addMessages(chatId: string, messages: Omit<Message, 'id' | 'chatId' | 'createdAt'>[], newChatName?: string): Promise<Chat | null> {
       const response = await fetch(`/api/chat/${chatId}/messages`, {
           method: 'POST',
-          body: JSON.stringify({ messages }),
+          body: JSON.stringify({ messages, newChatName }),
           headers: { 'Content-Type': 'application/json' },
       });
       if (!response.ok) return null;
