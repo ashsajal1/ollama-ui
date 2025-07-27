@@ -92,12 +92,13 @@ export function Message({ message, isFirstMessage }: MessageProps) {
     >
       <div className="prose dark:prose-invert max-w-none break-words">
         {message.contentType === "image" && message.imageUrl ? (
-          <div className="relative w-full aspect-auto max-h-[400px] overflow-hidden rounded-lg">
+          <div className="flex items-center gap-3">
             <img
               src={message.imageUrl}
               alt="Uploaded image"
-              style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '0.5rem' }}
+              style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '0.5rem', border: '1px solid #ccc' }}
             />
+            <span style={{ wordBreak: 'break-word' }}>{message.content}</span>
           </div>
         ) : (
           <ReactMarkdown
