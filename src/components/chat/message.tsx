@@ -10,7 +10,7 @@ import { Copy, Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { CodeBlockProps, CopyButtonState } from "@/types/code";
 import { Message as MessageType } from "@/types/chat";
-// import Image from "next/image";
+import Image from "next/image";
 
 interface MessageProps {
   message: MessageType;
@@ -93,10 +93,12 @@ export function Message({ message, isFirstMessage }: MessageProps) {
       <div className="prose dark:prose-invert max-w-none break-words">
         {message.contentType === "image" && message.imageUrl ? (
           <div className="flex items-center gap-3">
-            <img
+            <Image
               src={message.imageUrl}
               alt="Uploaded image"
-              style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '0.5rem', border: '1px solid #ccc' }}
+              width={64}
+              height={64}
+              style={{ objectFit: 'cover', borderRadius: '0.5rem', border: '1px solid #ccc' }}
             />
             <span style={{ wordBreak: 'break-word' }}>{message.content}</span>
           </div>
