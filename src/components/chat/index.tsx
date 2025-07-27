@@ -396,7 +396,7 @@ export function Chat({ initialChatId }: ChatProps) {
       const formData = new FormData();
       formData.append("image", file);
 
-      const response = await fetch("/api/upload", {
+      const response = await fetch("/api/image", {
         method: "POST",
         body: formData,
       });
@@ -405,16 +405,13 @@ export function Chat({ initialChatId }: ChatProps) {
         throw new Error("Failed to upload image");
       }
 
-      const { filepath } = await response.json();
-
-      // Convert filepath to URL for temporary access
-      const tempUrl = `/api/image/${encodeURIComponent(filepath)}`;
+      const { imageUrl } = await response.json();
 
       const imageMessage: MessageType = {
         role: "user",
         content: "Sent an image",
         contentType: "image",
-        imageUrl: tempUrl,
+        imageUrl: imageUrl,
       };
 
       setMessages((prev) => [...prev, imageMessage]);
