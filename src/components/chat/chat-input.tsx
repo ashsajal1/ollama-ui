@@ -12,6 +12,8 @@ interface ChatInputProps {
   onSubmit: (e: React.FormEvent, fullMessage: string) => void;
   onStopGeneration: () => void;
   onImageUpload?: (file: File) => void;
+  pendingImage?: string | null;
+  setPendingImage?: (img: string | null) => void;
 }
 
 export function ChatInput({
@@ -22,6 +24,8 @@ export function ChatInput({
   onSubmit,
   onStopGeneration,
   onImageUpload,
+  pendingImage,
+  setPendingImage,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [character, setCharacter] = useState("");
@@ -48,11 +52,26 @@ export function ChatInput({
       <div className="mb-2">
         <SelectCharacter
           onSelect={(selectedCharacter) => {
-            console.log(selectedCharacter);
             setCharacter(selectedCharacter);
           }}
         />
       </div>
+
+      {/* Image preview if uploading */}
+      {pendingImage && (
+        <div className="mb-2 flex items-center gap-2">
+          <img
+            src={pendingImage}
+            alt="Uploading preview"
+            style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '1px solid #ccc' }}
+          />
+          {setPendingImage && (
+            <Button type="button" size="sm" variant="destructive" onClick={() => setPendingImage(null)}>
+              Remove
+            </Button>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="relative">

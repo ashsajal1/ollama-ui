@@ -22,6 +22,7 @@ import { PreGeneratedPrompts } from "./pre-generated-prompts";
 import { ChatInput } from "./chat-input";
 
 import { Message as MessageType, ChatProps, ChatType, LocalChatType } from "@/types/chat";
+import React from "react";
 import { Model } from "@/types/model";
 import {
   createNewChat,
@@ -46,6 +47,7 @@ export function Chat({ initialChatId }: ChatProps) {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [chats, setChats] = useState<LocalChatType[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [editingChat, setEditingChat] = useState<LocalChatType | null>(null);
   const [editingName, setEditingName] = useState("");
   const [deletingChat, setDeletingChat] = useState<LocalChatType | null>(null);
@@ -207,16 +209,58 @@ export function Chat({ initialChatId }: ChatProps) {
   const handleSubmit = async (e: React.FormEvent, fullMessage: string) => {
     e.preventDefault();
     const trimmedMessage = fullMessage.trim();
-    if (!trimmedMessage || isLoading || responseInProgress.current) return;
+    if ((!trimmedMessage && !pendingImage) || isLoading || responseInProgress.current) return;
 
-    const userMessage: MessageType = {
-      role: "user",
-      content: trimmedMessage,
-    };
+    let userMessage: MessageType;
+    let imageUrl: string | undefined = undefined;
+
+    if (pendingImage) {
+      // Upload the image first and get the URL
+      try {
+        const formData = new FormData();
+        formData.append("image", await fetch(pendingImage).then(r => r.blob()));
+        const response = await fetch("/api/image", {
+          method: "POST",
+          body: formData,
+        });
+        if (!response.ok) throw new Error("Failed to upload image");
+        const data = await response.json();
+        imageUrl = data.imageUrl;
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to upload image. Please try again.",
+        });
+        return;
+      }
+    }
+
+    if (pendingImage && trimmedMessage) {
+      userMessage = {
+        role: "user",
+        content: trimmedMessage,
+        contentType: "image",
+        imageUrl,
+      };
+    } else if (pendingImage) {
+      userMessage = {
+        role: "user",
+        content: "Sent an image",
+        contentType: "image",
+        imageUrl,
+      };
+    } else {
+      userMessage = {
+        role: "user",
+        content: trimmedMessage,
+      };
+    }
 
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
+    setPendingImage(null);
     setIsLoading(true);
     setIsGenerating(true);
     responseInProgress.current = true;
@@ -391,70 +435,13 @@ export function Chat({ initialChatId }: ChatProps) {
     }
   };
 
+  // Instead of uploading immediately, just set a preview
   const handleImageUpload = async (file: File) => {
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch("/api/image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const { imageUrl } = await response.json();
-
-      const imageMessage: MessageType = {
-        role: "user",
-        content: "Sent an image",
-        contentType: "image",
-        imageUrl: imageUrl,
-      };
-
-      // Save the message if we're in a chat
-      let chatId = currentChatId;
-      if (chatId) {
-        await saveMessages(chatId, messages, [imageMessage]);
-      } else {
-        // Create a new chat if this is the first message
-        chatId = await createNewChat("Image chat");
-        setCurrentChatId(chatId);
-        await saveMessages(chatId, [], [imageMessage]);
-      }
-
-      // Always reload messages from the server after saving
-      if (chatId) {
-        const updatedChats = await loadChats();
-        setChats(
-          updatedChats.map((chat) => ({
-            ...chat,
-            messages: chat.messages.map((msg) => ({
-              ...msg,
-              role: msg.role === "user" ? "user" : "assistant",
-            })),
-          }))
-        );
-        const currentChat = updatedChats.find((c) => c.id === chatId);
-        if (currentChat) {
-          setMessages(
-            currentChat.messages.map((msg) => ({
-              ...msg,
-              role: msg.role === "user" ? "user" : "assistant",
-            }))
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to upload image. Please try again.",
-      });
-    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPendingImage(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -540,6 +527,8 @@ export function Chat({ initialChatId }: ChatProps) {
           onSubmit={handleSubmit}
           onStopGeneration={stopGeneration}
           onImageUpload={handleImageUpload}
+          pendingImage={pendingImage}
+          setPendingImage={setPendingImage}
         />
       </div>
 
