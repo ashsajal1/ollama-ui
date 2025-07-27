@@ -12,6 +12,8 @@ export interface Message {
   role: string;
   chatId: string;
   createdAt: Date;
+  contentType?: "text" | "image";
+  imageUrl?: string;
 }
 
 class LocalStorageAdapter {
@@ -80,7 +82,9 @@ class LocalStorageAdapter {
       ...msg,
       id: this.generateId(),
       chatId,
-      createdAt: new Date()
+      createdAt: new Date(),
+      contentType: msg.contentType,
+      imageUrl: msg.imageUrl,
     }));
 
     chats[chatIndex] = {

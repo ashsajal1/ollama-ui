@@ -414,16 +414,38 @@ export function Chat({ initialChatId }: ChatProps) {
         imageUrl: imageUrl,
       };
 
-      setMessages((prev) => [...prev, imageMessage]);
-
       // Save the message if we're in a chat
-      if (currentChatId) {
-        await saveMessages(currentChatId, messages, [imageMessage]);
+      let chatId = currentChatId;
+      if (chatId) {
+        await saveMessages(chatId, messages, [imageMessage]);
       } else {
         // Create a new chat if this is the first message
-        const chatId = await createNewChat("Image chat");
+        chatId = await createNewChat("Image chat");
         setCurrentChatId(chatId);
         await saveMessages(chatId, [], [imageMessage]);
+      }
+
+      // Always reload messages from the server after saving
+      if (chatId) {
+        const updatedChats = await loadChats();
+        setChats(
+          updatedChats.map((chat) => ({
+            ...chat,
+            messages: chat.messages.map((msg) => ({
+              ...msg,
+              role: msg.role === "user" ? "user" : "assistant",
+            })),
+          }))
+        );
+        const currentChat = updatedChats.find((c) => c.id === chatId);
+        if (currentChat) {
+          setMessages(
+            currentChat.messages.map((msg) => ({
+              ...msg,
+              role: msg.role === "user" ? "user" : "assistant",
+            }))
+          );
+        }
       }
     } catch (error) {
       console.error("Error uploading image:", error);

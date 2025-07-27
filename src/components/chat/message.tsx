@@ -10,7 +10,7 @@ import { Copy, Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { CodeBlockProps, CopyButtonState } from "@/types/code";
 import { Message as MessageType } from "@/types/chat";
-import Image from "next/image";
+// import Image from "next/image";
 
 interface MessageProps {
   message: MessageType;
@@ -93,12 +93,10 @@ export function Message({ message, isFirstMessage }: MessageProps) {
       <div className="prose dark:prose-invert max-w-none break-words">
         {message.contentType === "image" && message.imageUrl ? (
           <div className="relative w-full aspect-auto max-h-[400px] overflow-hidden rounded-lg">
-            <Image
+            <img
               src={message.imageUrl}
               alt="Uploaded image"
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '0.5rem' }}
             />
           </div>
         ) : (
